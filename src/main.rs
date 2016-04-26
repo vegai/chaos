@@ -80,10 +80,9 @@ Generates a new password bytestream.
 
 Algorithm:
 
-1. Generate a random 8 byte salt
+1. Generate a random SALT_LENGTH byte salt
 2. Repeat title until it reaches at least i bytes
-3. Generate a cipher text using salsa20, with above string as input, using given key and generated salt
-4. Return generated salt and cipher text
+3. Generate a cipher text using xsalsa20, with above string as input, using given key and generated salt
 
 */
 fn generate_new_password_with_size(key: &[u8], title: &str, i: usize) -> (Vec<u8>, Vec<u8>) {
