@@ -124,6 +124,7 @@ fn load_data(path: &str) -> Vec<Password> {
 fn save_data(data: &str, filename: &str) {
     let mut f = File::create(filename).unwrap();
     f.write_all(data.as_bytes()).expect("Data file write failed");
+    f.write_all("\n".as_bytes()).expect("Newline write failed!");
     f.sync_all().expect("Sync failed");
 }
 
@@ -182,6 +183,11 @@ fn find_password_by_title_or_bail<'a>(passwords: &'a Vec<Password>, title: &str)
     exit(2);
 }
 
+fn cut_password(pass: Vec<u8>, format: u8, length: u8) -> String {
+    let packed_pass = pack_into_password(&*pass, format);
+    packed_pass.chars().take(length as usize).collect()
+}
+
 fn main() {
     let matches = App::new("chaos")
         .version("0.0")
@@ -236,10 +242,8 @@ fn main() {
         let password = find_password_by_title_or_bail(&old_data, &title);
         let decoded_salt : Vec<u8> = password.salt.from_base64().expect("Salt base64 decoding failed");
         let pass = generate_password_with_salt(&key, title, &decoded_salt, 1024);
-        let packed_pass = pack_into_password(&*pass, password.format);
-        let cut_password : String = packed_pass.chars().take(password.length as usize).collect();
 
-        println!("{}", cut_password);
+        println!("{}", cut_password(pass, password.format, password.length));
         return;
     }
 
@@ -251,16 +255,13 @@ fn main() {
         let format = matches.value_of("format").unwrap_or(DEFAULT_FORMAT).parse::<u8>().unwrap();
         let length = matches.value_of("length").unwrap_or(DEFAULT_LENGTH).parse::<u8>().unwrap();
 
-        println!("title {} format {}", title, format);
-
         let (salt, pass) = generate_new_password(&key, title);
         let pd = Password { title: title.to_string(), salt: salt.to_base64(base64::STANDARD), format: format, length: length };
         old_data.push(pd);
         let metadata_string = serde_json::to_string_pretty(&old_data).unwrap();
-        let packed_password = pack_into_password(&*pass, format);
-        let cut_password : String = packed_password.chars().take(length as usize).collect();
 
-        println!("generated password: {}", cut_password);
+        println!("{}", title);
+        println!("{}", cut_password(pass, format, length));
         save_data(&metadata_string, &data_file_name);
         set_file_perms(&data_file_name, 0o600);
         return;
