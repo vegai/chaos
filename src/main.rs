@@ -31,6 +31,10 @@ enum FormatChoices {
     BinaryOnlyLol       // 5
 }
 */
+const DEFAULT_FORMAT : &'static str = "1";
+const DEFAULT_LENGTH : &'static str = "32";
+const SALT_LENGTH : usize = 24;
+const KEY_LENGTH : usize = 32;
 
 #[derive(Serialize,Deserialize,Debug)]
 struct Password {
@@ -83,9 +87,9 @@ Algorithm:
 */
 fn generate_new_password_with_size(key: &[u8], title: &str, password: &str, i: usize) -> (Vec<u8>, Vec<u8>) {
     let mut rng = OsRng::new().ok().expect("OsRng init failed");
-    let salt : Vec<u8> = rng.gen_iter::<u8>().take(8).collect();
+    let salt : Vec<u8> = rng.gen_iter::<u8>().take(SALT_LENGTH).collect();
 
-    let mut cipher = Salsa20::new(&key, &salt);
+    let mut cipher = Salsa20::new_xsalsa20(&key, &salt);
     let combined_text = format!("{}{}", title, password);
     let clear_text = expand_to_at_least(i, combined_text);
 
@@ -132,7 +136,7 @@ fn load_or_create_key(filename: &str) -> Vec<u8> {
         Err(_) => {
             println!("Creating a new key in {}", filename);
             let mut rng = OsRng::new().ok().expect("OsRng init failed");
-            let new_key : Vec<u8> = rng.gen_iter::<u8>().take(16).collect();
+            let new_key : Vec<u8> = rng.gen_iter::<u8>().take(KEY_LENGTH).collect();
             let key_base64 = new_key.to_base64(base64::STANDARD);
             save_data(&key_base64, filename);
             //f.write_all(&key_base64).expect("Writing key failed");
@@ -158,6 +162,12 @@ fn main() {
         .subcommand(SubCommand::with_name("get")
                     .about("get entry"))
         .subcommand(SubCommand::with_name("new")
+                    .arg(Arg::with_name("length")
+                         .short("l")
+                         .long("length")
+                         .help("length")
+                         .value_name("length")
+                         .takes_value(true))
                     .arg(Arg::with_name("format")
                          .short("f")
                          .long("format")
@@ -195,8 +205,8 @@ fn main() {
 
     if let Some(ref matches) = matches.subcommand_matches("new") {
         let title = matches.value_of("title").unwrap();
-        let format = matches.value_of("format").unwrap_or("1").parse::<u8>().unwrap();
-        let length = matches.value_of("length").unwrap_or("16").parse::<usize>().unwrap();
+        let format = matches.value_of("format").unwrap_or(DEFAULT_FORMAT).parse::<u8>().unwrap();
+        let length = matches.value_of("length").unwrap_or(DEFAULT_LENGTH).parse::<usize>().unwrap();
 
         println!("title {} format {}", title, format);
 
