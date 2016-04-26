@@ -20,6 +20,7 @@ use serialize::base64;
 use serialize::base64::{FromBase64, ToBase64};
 use rand::{OsRng, Rng};
 use clap::{Arg, App, SubCommand};
+use std::process::exit;
 
 /* not used until I know how to work with Serde
 #[derive(Debug)]
@@ -152,6 +153,15 @@ fn create_data_dir(data_dir: &str) {
     set_file_perms(&data_dir, 0o700);
 }
 
+fn bail_if_title_exists(passwords: &Vec<Password>, title: &str) {
+    for password in passwords {
+        if password.title == title {
+            println!("'{}' already exists, nothing done.", title);
+            exit(1);
+        }
+    }
+}
+
 fn main() {
     let matches = App::new("chaos")
         .version("0.0")
@@ -205,6 +215,9 @@ fn main() {
 
     if let Some(ref matches) = matches.subcommand_matches("new") {
         let title = matches.value_of("title").unwrap();
+
+        bail_if_title_exists(&old_data, &title);
+
         let format = matches.value_of("format").unwrap_or(DEFAULT_FORMAT).parse::<u8>().unwrap();
         let length = matches.value_of("length").unwrap_or(DEFAULT_LENGTH).parse::<usize>().unwrap();
 
