@@ -143,8 +143,6 @@ fn load_or_create_key(filename: &str) -> Vec<u8> {
             let new_key : Vec<u8> = rng.gen_iter::<u8>().take(KEY_LENGTH).collect();
             let key_base64 = new_key.to_base64(base64::STANDARD);
             save_data(&key_base64, filename);
-            //f.write_all(&key_base64).expect("Writing key failed");
-            //f.sync_all().expect("Sync failed");
             set_file_perms(filename, 0o400);
             new_key
         }
