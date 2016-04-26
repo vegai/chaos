@@ -166,13 +166,6 @@ fn title_exists(passwords: &Vec<Password>, title: &str) -> bool {
     false
 }
 
-fn bail_if_title_exists(passwords: &Vec<Password>, title: &str) {
-    if title_exists(passwords, title) {
-        println!("'{}' exists already.", title);
-        exit(1);
-    }
-}
-
 fn find_password_by_title_or_bail<'a>(passwords: &'a Vec<Password>, title: &str) -> &'a Password {
     for &ref password in passwords {
         if password.title == title {
@@ -207,6 +200,11 @@ fn main() {
                          .help("length")
                          .value_name("length")
                          .takes_value(true))
+                    .arg(Arg::with_name("force")
+                         .long("force")
+                         .help("force")
+                         .value_name("force")
+                         .takes_value(false))
                     .arg(Arg::with_name("format")
                          .short("f")
                          .long("format")
@@ -250,7 +248,15 @@ fn main() {
     if let Some(ref matches) = matches.subcommand_matches("new") {
         let title = matches.value_of("title").unwrap();
 
-        bail_if_title_exists(&old_data, &title);
+        if title_exists(&old_data, &title) {
+            if matches.is_present("force") {
+                println!("Force asked");
+                exit(1);
+            } else {
+                println!("'{}' exists already. --force to overwrite", title);
+                exit(1);
+            }
+        }
 
         let format = matches.value_of("format").unwrap_or(DEFAULT_FORMAT).parse::<u8>().unwrap();
         let length = matches.value_of("length").unwrap_or(DEFAULT_LENGTH).parse::<u8>().unwrap();
