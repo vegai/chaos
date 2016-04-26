@@ -231,11 +231,15 @@ fn main() {
 
     // Functionality that does require loading the key
     let key = load_or_create_key(&key_file_name);
-    if matches.is_present("get") {
+    if let Some(ref matches) = matches.subcommand_matches("get") {
         let title = matches.value_of("title").unwrap();
         let password = find_password_by_title_or_bail(&old_data, &title);
         let decoded_salt : Vec<u8> = password.salt.from_base64().expect("Salt base64 decoding failed");
-        generate_password_with_salt(&key, title, &decoded_salt, 1024);
+        let pass = generate_password_with_salt(&key, title, &decoded_salt, 1024);
+        let packed_pass = pack_into_password(&*pass, password.format);
+        let cut_password : String = packed_pass.chars().take(password.length as usize).collect();
+
+        println!("{}", cut_password);
         return;
     }
 
