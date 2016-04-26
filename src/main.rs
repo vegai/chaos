@@ -5,12 +5,10 @@ extern crate crypto;
 extern crate rustc_serialize as serialize;
 extern crate serde;
 extern crate serde_json;
-extern crate dotenv;
 extern crate rand;
 extern crate shellexpand;
 
 use std::iter::repeat;
-use std::env;
 use std::fs;
 use std::io::{Read, Write};
 use std::fs::File;
@@ -19,7 +17,6 @@ use crypto::salsa20::Salsa20;
 use crypto::symmetriccipher::SynchronousStreamCipher;
 use serialize::base64;
 use serialize::base64::{FromBase64, ToBase64};
-use dotenv::from_filename;
 use rand::{OsRng, Rng};
 
 /* not used until I know how to work with Serde
@@ -144,15 +141,16 @@ fn load_or_create_key(filename: &str) -> Vec<u8> {
     }
 }
 
-fn main() {
-    from_filename(".chaos.conf").ok().expect("Configuration file needed");
-
-    let data_dir_raw = env::var("CHAOS_DATA_DIR").ok().expect("CHAOS_DATA_DIR undefined");
-    let data_dir = shellexpand::tilde(&data_dir_raw);
-    let data_file_name = format!("{}/data.json", data_dir);
-    let key_file_name = format!("{}/key", data_dir);
+fn create_data_dir(data_dir: &str) {
     fs::create_dir_all(data_dir.to_string()).ok().expect(&format!("Creating data directory {} failed", data_dir));
     set_file_perms(&data_dir, 0o700);
+}
+
+fn main() {
+    let data_dir = shellexpand::tilde("~/.chaos");
+    let data_file_name = format!("{}/data.json", data_dir);
+    let key_file_name = format!("{}/key", data_dir);
+    create_data_dir(&data_dir);
 
     let mut old_data = load_data(&data_file_name);
 
