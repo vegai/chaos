@@ -7,6 +7,7 @@ extern crate serde;
 extern crate serde_json;
 extern crate rand;
 extern crate shellexpand;
+extern crate clap;
 
 use std::iter::repeat;
 use std::fs;
@@ -18,6 +19,7 @@ use crypto::symmetriccipher::SynchronousStreamCipher;
 use serialize::base64;
 use serialize::base64::{FromBase64, ToBase64};
 use rand::{OsRng, Rng};
+use clap::{Arg, App, SubCommand};
 
 /* not used until I know how to work with Serde
 #[derive(Debug)]
@@ -147,6 +149,29 @@ fn create_data_dir(data_dir: &str) {
 }
 
 fn main() {
+    let matches = App::new("chaos")
+        .version("0.0")
+        .author("Vesa Kaihlavirta <vegai@iki.fi>")
+        .about("Manages passwords")
+        .subcommand(SubCommand::with_name("ls")
+                    .about("lists entries"))
+        .subcommand(SubCommand::with_name("get")
+                    .about("get entry"))
+        .subcommand(SubCommand::with_name("new")
+                    .arg(Arg::with_name("format")
+                         .short("f")
+                         .long("format")
+                         .help("format")
+                         .value_name("format")
+                         .takes_value(true))
+                    .about("generate new entry")
+                    .arg(Arg::with_name("title")
+                         .index(1)
+                         .required(true)
+                    ))
+
+        .get_matches();
+
     let data_dir = shellexpand::tilde("~/.chaos");
     let data_file_name = format!("{}/data.json", data_dir);
     let key_file_name = format!("{}/key", data_dir);
@@ -154,18 +179,38 @@ fn main() {
 
     let mut old_data = load_data(&data_file_name);
 
-    // here would be UI
-    let format = 5;
+
+    // Functionality that does not require loading the key
+    if matches.is_present("ls") {
+        println!("ls");
+        return;
+    }
+
+    // Functionality that does require loading the key
     let key = load_or_create_key(&key_file_name);
-    println!("key is {:?}", key);
-    let (salt, pass) = generate_new_password(&key, "title", "password");
-    let pd = Password { title: "title".to_string(), salt: salt.to_base64(base64::STANDARD), format: format };
+    if matches.is_present("get") {
+        println!("get");
+        return;
+    }
 
-    old_data.push(pd);
-    let metadata_string = serde_json::to_string_pretty(&old_data).unwrap();
-    let packed_password = pack_into_password(&*pass, format);
+    if let Some(ref matches) = matches.subcommand_matches("new") {
+        let title = matches.value_of("title").unwrap();
+        let format = matches.value_of("format").unwrap_or("1").parse::<u8>().unwrap();
+        let length = matches.value_of("length").unwrap_or("16").parse::<usize>().unwrap();
 
-    println!("password: {}", &packed_password[0..32]);
-    save_data(&metadata_string, &data_file_name);
-    set_file_perms(&data_file_name, 0o600);
+        println!("title {} format {}", title, format);
+
+        let (salt, pass) = generate_new_password(&key, "title", "password");
+        let pd = Password { title: "title".to_string(), salt: salt.to_base64(base64::STANDARD), format: format };
+        old_data.push(pd);
+        let metadata_string = serde_json::to_string_pretty(&old_data).unwrap();
+        let packed_password = pack_into_password(&*pass, format);
+        let cut_password : String = packed_password.chars().take(length).collect();
+
+        println!("generated password: {}", cut_password);
+        save_data(&metadata_string, &data_file_name);
+        set_file_perms(&data_file_name, 0o600);
+        return;
+    }
+
 }
