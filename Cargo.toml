@@ -1,6 +1,6 @@
 [package]
 name = "chaos"
-version = "0.1.0"
+version = "0.1.1"
 description = "Password metadata storage and xsalsa20 hasher"
 license = "Unlicense"
 authors = ["vegai@iki.fi"]
