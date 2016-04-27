@@ -23,16 +23,16 @@ use clap::{Arg, App, SubCommand};
 use std::process::exit;
 use std::collections::HashMap;
 
-/* not used until I know how to work with Serde
-#[derive(Debug)]
-enum FormatChoices {
-    AlphaNumAndSymbols, // 1
-    AlphaNum,           // 2
-    AlphaOnly,          // 3
-    NumOnly             // 4
-    BinaryOnlyLol       // 5
-}
-*/
+// not used until I know how to work with Serde
+// #[derive(Debug)]
+// enum FormatChoices {
+// AlphaNumAndSymbols, // 1
+// AlphaNum,           // 2
+// AlphaOnly,          // 3
+// NumOnly             // 4
+// BinaryOnlyLol       // 5
+// }
+//
 const DEFAULT_FORMAT: &'static str = "1";
 const DEFAULT_LENGTH: &'static str = "32";
 const SALT_LENGTH: usize = 24;
@@ -42,12 +42,15 @@ const GENERATED_INPUT_LENGTH: usize = 1024;
 #[derive(Serialize, Deserialize, Debug)]
 struct Passwords {
     version: u8,
-    metadata: HashMap<String, Password>
+    metadata: HashMap<String, Password>,
 }
 
 impl Passwords {
     fn new() -> Passwords {
-        Passwords { version: 1, metadata: HashMap::new() }
+        Passwords {
+            version: 1,
+            metadata: HashMap::new(),
+        }
     }
 
     fn title_exists(&self, title: &str) -> bool {
@@ -63,7 +66,7 @@ impl Passwords {
 struct Password {
     salt: String,
     format: u8,
-    length: u16
+    length: u16,
 }
 
 fn pack(allowed_chars: &str, hash: &[u8]) -> String {
@@ -78,12 +81,19 @@ fn pack(allowed_chars: &str, hash: &[u8]) -> String {
 
 fn pack_into_password(hash: &[u8], format_choice: u8) -> String {
     match format_choice {
-        1 => pack("!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", hash),
-        2 => pack("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", hash),
+        1 => {
+            pack("!\"#$%&'()*+,-./0123456789:;\
+                  <=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+                 hash)
+        }
+        2 => {
+            pack("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+                 hash)
+        }
         3 => pack("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", hash),
         4 => pack("0123456789", hash),
         5 => pack("01", hash), // stupider than the above, but not by much
-        _ => panic!("Invalid format choice {}", format_choice)
+        _ => panic!("Invalid format choice {}", format_choice),
     }
 }
 
@@ -95,22 +105,21 @@ fn expand_to_at_least<'a>(wanted_length: usize, base: &str) -> String {
     buf
 }
 
-/*
-
-Generates a new password bytestream.
-
-Algorithm:
-
-1. Generate a random SALT_LENGTH byte salt
-2. Repeat title until it reaches at least i bytes
-3. Generate a cipher text using xsalsa20, with above string as input, using given key and generated salt
-
-*/
+// Generates a new password bytestream.
+//
+// Algorithm:
+//
+// 1. Generate a random SALT_LENGTH byte salt
+// 2. Repeat title until it reaches at least i bytes
+// 3. Generate a cipher text using xsalsa20, with above string as input,
+//    using given key and generated salt
+//
+//
 fn generate_password(key: &[u8], title: &str, salt: &Vec<u8>, i: usize) -> Vec<u8> {
     let mut cipher = Salsa20::new_xsalsa20(&key, salt);
     let clear_text = expand_to_at_least(i, title);
 
-    let mut buf : Vec<u8> = repeat(0).take(i).collect();
+    let mut buf: Vec<u8> = repeat(0).take(i).collect();
     cipher.process(&clear_text.as_bytes()[0..i], &mut buf);
     buf
 }
@@ -131,7 +140,7 @@ fn load_file(path: &str) -> Result<String, std::io::Error> {
 fn load_password_data(path: &str) -> Passwords {
     match load_file(path) {
         Ok(d) => serde_json::from_str(&d).unwrap_or(Passwords::new()),
-        Err(_) => Passwords::new()
+        Err(_) => Passwords::new(),
     }
 }
 
@@ -150,12 +159,11 @@ fn set_file_perms(filename: &str, mode: u32) {
 
 fn load_or_create_key(filename: &str) -> Vec<u8> {
     match load_file(filename) {
-        Ok(s) =>
-            s.from_base64().expect("Key base64 decoding failed"),
+        Ok(s) => s.from_base64().expect("Key base64 decoding failed"),
         Err(_) => {
             println!("Creating a new key in {}", filename);
             let mut rng = OsRng::new().ok().expect("OsRng init failed");
-            let new_key : Vec<u8> = rng.gen_iter::<u8>().take(KEY_LENGTH).collect();
+            let new_key: Vec<u8> = rng.gen_iter::<u8>().take(KEY_LENGTH).collect();
             let key_base64 = new_key.to_base64(base64::STANDARD);
             save_data(&key_base64, filename);
             set_file_perms(filename, 0o400);
@@ -165,7 +173,9 @@ fn load_or_create_key(filename: &str) -> Vec<u8> {
 }
 
 fn create_data_dir(data_dir: &str) {
-    fs::create_dir_all(data_dir.to_string()).ok().expect(&format!("Creating data directory {} failed", data_dir));
+    fs::create_dir_all(data_dir.to_string())
+        .ok()
+        .expect(&format!("Creating data directory {} failed", data_dir));
     set_file_perms(&data_dir, 0o700);
 }
 
@@ -187,64 +197,62 @@ fn cut_password(pass: Vec<u8>, format: u8, length: u16) -> String {
 
 fn main() {
     let matches = App::new("chaos")
-        .version("0.0")
-        .author("Vesa Kaihlavirta <vegai@iki.fi>")
-        .about("Manages passwords")
-        .subcommand(SubCommand::with_name("ls")
-                    .about("lists entries"))
-        .subcommand(SubCommand::with_name("rm")
-                    .about("remove entry")
-                    .arg(Arg::with_name("force")
-                         .long("force")
-                         .help("actually removes the entry")
-                         .value_name("force")
-                         .takes_value(false))
-                    .arg(Arg::with_name("title")
-                         .index(1)
-                         .required(true)))
-        .subcommand(SubCommand::with_name("get")
-                    .about("get entry")
-                    .arg(Arg::with_name("title")
-                         .index(1)
-                         .required(true)))
-        .subcommand(SubCommand::with_name("new")
-                    .arg(Arg::with_name("length")
-                         .short("l")
-                         .long("length")
-                         .help("wanted length of the password")
-                         .value_name("length")
-                         .takes_value(true))
-                    .arg(Arg::with_name("force")
-                         .long("force")
-                         .help("replace an existing entry")
-                         .value_name("force")
-                         .takes_value(false))
-                    .arg(Arg::with_name("format")
-                         .short("f")
-                         .long("format")
-                         .help("1=alphanumsymbol, 2=alphanum, 3=alpha, 4=num, 5=lol")
-                         .value_name("format")
-                         .takes_value(true))
-                    .about("generate new entry")
-                    .arg(Arg::with_name("title")
-                         .index(1)
-                         .required(true)
-                    ))
-
-        .get_matches();
+                      .version("0.0")
+                      .author("Vesa Kaihlavirta <vegai@iki.fi>")
+                      .about("Manages passwords")
+                      .subcommand(SubCommand::with_name("ls").about("lists entries"))
+                      .subcommand(SubCommand::with_name("rm")
+                                      .about("remove entry")
+                                      .arg(Arg::with_name("force")
+                                               .long("force")
+                                               .help("actually removes the entry")
+                                               .value_name("force")
+                                               .takes_value(false))
+                                      .arg(Arg::with_name("title")
+                                               .index(1)
+                                               .required(true)))
+                      .subcommand(SubCommand::with_name("get")
+                                      .about("get entry")
+                                      .arg(Arg::with_name("title")
+                                               .index(1)
+                                               .required(true)))
+                      .subcommand(SubCommand::with_name("new")
+                                      .arg(Arg::with_name("length")
+                                               .short("l")
+                                               .long("length")
+                                               .help("wanted length of the password")
+                                               .value_name("length")
+                                               .takes_value(true))
+                                      .arg(Arg::with_name("force")
+                                               .long("force")
+                                               .help("replace an existing entry")
+                                               .value_name("force")
+                                               .takes_value(false))
+                                      .arg(Arg::with_name("format")
+                                               .short("f")
+                                               .long("format")
+                                               .help("1=alphanumsymbol, 2=alphanum, 3=alpha, \
+                                                      4=num, 5=lol")
+                                               .value_name("format")
+                                               .takes_value(true))
+                                      .about("generate new entry")
+                                      .arg(Arg::with_name("title")
+                                               .index(1)
+                                               .required(true)))
+                      .get_matches();
 
     let data_dir = shellexpand::tilde("~/.chaos");
     let data_file_name = format!("{}/data.json", data_dir);
     let key_file_name = format!("{}/key", data_dir);
     create_data_dir(&data_dir);
 
-    let mut old_data : Passwords = load_password_data(&data_file_name);
+    let mut old_data: Passwords = load_password_data(&data_file_name);
 
 
     // Functionality that does not require loading the key
     // ls
     if matches.is_present("ls") {
-        let mut titles : Vec<&String>= old_data.metadata.keys().collect();
+        let mut titles: Vec<&String> = old_data.metadata.keys().collect();
         titles.sort();
         for title in titles {
             println!("{}", title);
@@ -256,7 +264,7 @@ fn main() {
     if let Some(ref matches) = matches.subcommand_matches("rm") {
         let title = matches.value_of("title").unwrap();
 
-        if old_data.title_exists(&title) && ! matches.is_present("force"){
+        if old_data.title_exists(&title) && !matches.is_present("force") {
             println!("'{}' exists. --force to remove", title);
             exit(1);
         }
@@ -273,7 +281,7 @@ fn main() {
     if let Some(ref matches) = matches.subcommand_matches("new") {
         let title = matches.value_of("title").unwrap();
 
-        if old_data.title_exists(&title) && ! matches.is_present("force"){
+        if old_data.title_exists(&title) && !matches.is_present("force") {
             println!("'{}' exists already. --force to overwrite", title);
             exit(1);
         }
@@ -282,7 +290,11 @@ fn main() {
         let length = matches.value_of("length").unwrap_or(DEFAULT_LENGTH).parse::<u16>().unwrap();
 
         let salt = generate_salt();
-        let pd = Password { salt: salt.to_base64(base64::STANDARD), format: format, length: length };
+        let pd = Password {
+            salt: salt.to_base64(base64::STANDARD),
+            format: format,
+            length: length,
+        };
         old_data.insert(title, pd);
         let metadata_string = serde_json::to_string_pretty(&old_data).unwrap();
 
@@ -298,7 +310,9 @@ fn main() {
     if let Some(ref matches) = matches.subcommand_matches("get") {
         let title = matches.value_of("title").unwrap();
         let password = find_password_by_title_or_bail(&old_data, &title);
-        let decoded_salt : Vec<u8> = password.salt.from_base64().expect("Salt base64 decoding failed");
+        let decoded_salt: Vec<u8> = password.salt
+                                            .from_base64()
+                                            .expect("Salt base64 decoding failed");
         let pass = generate_password(&key, title, &decoded_salt, GENERATED_INPUT_LENGTH);
 
         println!("{}", cut_password(pass, password.format, password.length));
