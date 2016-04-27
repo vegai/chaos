@@ -21,6 +21,7 @@ use serialize::base64::{FromBase64, ToBase64};
 use rand::{OsRng, Rng};
 use clap::{Arg, App, SubCommand};
 use std::process::exit;
+use std::collections::HashMap;
 
 /* not used until I know how to work with Serde
 #[derive(Debug)]
@@ -32,17 +33,37 @@ enum FormatChoices {
     BinaryOnlyLol       // 5
 }
 */
-const DEFAULT_FORMAT : &'static str = "1";
-const DEFAULT_LENGTH : &'static str = "32";
-const SALT_LENGTH : usize = 24;
-const KEY_LENGTH : usize = 32;
+const DEFAULT_FORMAT: &'static str = "1";
+const DEFAULT_LENGTH: &'static str = "32";
+const SALT_LENGTH: usize = 24;
+const KEY_LENGTH: usize = 32;
+const GENERATED_INPUT_LENGTH: usize = 1024;
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Passwords {
+    version: u8,
+    metadata: HashMap<String, Password>
+}
+
+impl Passwords {
+    fn new() -> Passwords {
+        Passwords { version: 1, metadata: HashMap::new() }
+    }
+
+    fn title_exists(&self, title: &str) -> bool {
+        self.metadata.contains_key(title)
+    }
+
+    fn insert(&mut self, title: &str, password: Password) {
+        self.metadata.insert(title.to_string(), password);
+    }
+}
 
 #[derive(Serialize,Deserialize,Debug)]
 struct Password {
-    title: String,
     salt: String,
     format: u8,
-    length: u8
+    length: u16
 }
 
 fn pack(allowed_chars: &str, hash: &[u8]) -> String {
@@ -103,7 +124,7 @@ fn generate_password_with_salt(key: &[u8], title: &str, salt: &Vec<u8>, i: usize
 }
 
 fn generate_new_password(key: &[u8], title: &str) -> (Vec<u8>, Vec<u8>) {
-    generate_new_password_with_size(key, title, 1024)
+    generate_new_password_with_size(key, title, GENERATED_INPUT_LENGTH)
 }
 
 fn load_file(path: &str) -> Result<String, std::io::Error> {
@@ -113,10 +134,10 @@ fn load_file(path: &str) -> Result<String, std::io::Error> {
     Ok(s)
 }
 
-fn load_data(path: &str) -> Vec<Password> {
+fn load_password_data(path: &str) -> Passwords {
     match load_file(path) {
-        Ok(d) => serde_json::from_str(&d).unwrap_or(vec!()),
-        Err(_) => vec!()
+        Ok(d) => serde_json::from_str(&d).unwrap_or(Passwords::new()),
+        Err(_) => Passwords::new()
     }
 }
 
@@ -154,26 +175,18 @@ fn create_data_dir(data_dir: &str) {
     set_file_perms(&data_dir, 0o700);
 }
 
-fn title_exists(passwords: &Vec<Password>, title: &str) -> bool {
-    for password in passwords {
-        if password.title == title {
-            return true;
+
+fn find_password_by_title_or_bail<'a>(passwords: &'a Passwords, title: &str) -> &'a Password {
+    match passwords.metadata.get(title) {
+        Some(password) => password,
+        None => {
+            println!("'{}' does not exist.", title);
+            exit(2);
         }
     }
-    false
 }
 
-fn find_password_by_title_or_bail<'a>(passwords: &'a Vec<Password>, title: &str) -> &'a Password {
-    for &ref password in passwords {
-        if password.title == title {
-            return password;
-        }
-    }
-    println!("'{}' does not exist.", title);
-    exit(2);
-}
-
-fn cut_password(pass: Vec<u8>, format: u8, length: u8) -> String {
+fn cut_password(pass: Vec<u8>, format: u8, length: u16) -> String {
     let packed_pass = pack_into_password(&*pass, format);
     packed_pass.chars().take(length as usize).collect()
 }
@@ -185,6 +198,16 @@ fn main() {
         .about("Manages passwords")
         .subcommand(SubCommand::with_name("ls")
                     .about("lists entries"))
+        .subcommand(SubCommand::with_name("rm")
+                    .about("remove entry")
+                    .arg(Arg::with_name("force")
+                         .long("force")
+                         .help("actually removes the entry")
+                         .value_name("force")
+                         .takes_value(false))
+                    .arg(Arg::with_name("title")
+                         .index(1)
+                         .required(true)))
         .subcommand(SubCommand::with_name("get")
                     .about("get entry")
                     .arg(Arg::with_name("title")
@@ -194,18 +217,18 @@ fn main() {
                     .arg(Arg::with_name("length")
                          .short("l")
                          .long("length")
-                         .help("length")
+                         .help("wanted length of the password")
                          .value_name("length")
                          .takes_value(true))
                     .arg(Arg::with_name("force")
                          .long("force")
-                         .help("force")
+                         .help("replace an existing entry")
                          .value_name("force")
                          .takes_value(false))
                     .arg(Arg::with_name("format")
                          .short("f")
                          .long("format")
-                         .help("format")
+                         .help("1=alphanumsymbol, 2=alphanum, 3=alpha, 4=num, 5=lol")
                          .value_name("format")
                          .takes_value(true))
                     .about("generate new entry")
@@ -221,12 +244,32 @@ fn main() {
     let key_file_name = format!("{}/key", data_dir);
     create_data_dir(&data_dir);
 
-    let mut old_data = load_data(&data_file_name);
+    let mut old_data : Passwords = load_password_data(&data_file_name);
 
 
     // Functionality that does not require loading the key
     if matches.is_present("ls") {
-        println!("ls");
+        let mut titles : Vec<&String>= old_data.metadata.keys().collect();
+        titles.sort();
+        for title in titles {
+            println!("{}", title);
+        }
+        return;
+    }
+
+    if let Some(ref matches) = matches.subcommand_matches("rm") {
+        let title = matches.value_of("title").unwrap();
+
+        if old_data.title_exists(&title) && ! matches.is_present("force"){
+            println!("'{}' exists. --force to remove", title);
+            exit(1);
+        }
+
+        old_data.metadata.remove(title);
+
+        let metadata_string = serde_json::to_string_pretty(&old_data).unwrap();
+        save_data(&metadata_string, &data_file_name);
+        set_file_perms(&data_file_name, 0o600);
         return;
     }
 
@@ -236,7 +279,7 @@ fn main() {
         let title = matches.value_of("title").unwrap();
         let password = find_password_by_title_or_bail(&old_data, &title);
         let decoded_salt : Vec<u8> = password.salt.from_base64().expect("Salt base64 decoding failed");
-        let pass = generate_password_with_salt(&key, title, &decoded_salt, 1024);
+        let pass = generate_password_with_salt(&key, title, &decoded_salt, GENERATED_INPUT_LENGTH);
 
         println!("{}", cut_password(pass, password.format, password.length));
         return;
@@ -245,22 +288,17 @@ fn main() {
     if let Some(ref matches) = matches.subcommand_matches("new") {
         let title = matches.value_of("title").unwrap();
 
-        if title_exists(&old_data, &title) {
-            if matches.is_present("force") {
-                println!("Force asked");
-                exit(1);
-            } else {
-                println!("'{}' exists already. --force to overwrite", title);
-                exit(1);
-            }
+        if old_data.title_exists(&title) && ! matches.is_present("force"){
+            println!("'{}' exists already. --force to overwrite", title);
+            exit(1);
         }
 
         let format = matches.value_of("format").unwrap_or(DEFAULT_FORMAT).parse::<u8>().unwrap();
-        let length = matches.value_of("length").unwrap_or(DEFAULT_LENGTH).parse::<u8>().unwrap();
+        let length = matches.value_of("length").unwrap_or(DEFAULT_LENGTH).parse::<u16>().unwrap();
 
         let (salt, pass) = generate_new_password(&key, title);
-        let pd = Password { title: title.to_string(), salt: salt.to_base64(base64::STANDARD), format: format, length: length };
-        old_data.push(pd);
+        let pd = Password { salt: salt.to_base64(base64::STANDARD), format: format, length: length };
+        old_data.insert(title, pd);
         let metadata_string = serde_json::to_string_pretty(&old_data).unwrap();
 
         println!("{}", title);
