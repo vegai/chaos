@@ -38,6 +38,7 @@ Actual passwords are not stored anywhere, but are computed by xsalsa20 and cut u
 # todo
 
 - zsh completion
+- remove magic 1024 and just generate a required length string
 - perhaps support a generic data field
 - perhaps try to secure memory
-- remove magic 1024 and just generate a required length string
+- chaos hashes by "something you have" (title+key+salt), perhaps it also need a "something you only know" like an input password -- but that complificates the UI which I wouldn't want
