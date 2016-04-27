@@ -10,11 +10,13 @@ cargo install chaos
 
 # usage
 
+```
 chaos help
 chaos help new
 chaos help get
 chaos help ls
 chaos help rm
+```
 
 # security
 
