@@ -7,6 +7,7 @@ extern crate serde;
 extern crate serde_json;
 extern crate rand;
 extern crate shellexpand;
+#[macro_use]
 extern crate clap;
 
 use std::iter::repeat;
@@ -197,10 +198,9 @@ fn cut_password(pass: Vec<u8>, format: u8, length: u16) -> String {
 
 fn main() {
     let matches = App::new("chaos")
-                      .version("0.0")
                       .author("Vesa Kaihlavirta <vegai@iki.fi>")
-                      .about("Manages passwords")
-                      .subcommand(SubCommand::with_name("ls").about("lists entries"))
+                      .version(crate_version!())
+                      .subcommand(SubCommand::with_name("ls").about("lists entries (default action if none specified)"))
                       .subcommand(SubCommand::with_name("rm")
                                       .about("remove entry")
                                       .arg(Arg::with_name("force")
@@ -251,7 +251,7 @@ fn main() {
 
     // Functionality that does not require loading the key
     // ls
-    if matches.is_present("ls") {
+    if matches.subcommand_name() == None || matches.is_present("ls") {
         let mut titles: Vec<&String> = old_data.metadata.keys().collect();
         titles.sort();
         for title in titles {
