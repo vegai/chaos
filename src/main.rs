@@ -106,15 +106,7 @@ Algorithm:
 3. Generate a cipher text using xsalsa20, with above string as input, using given key and generated salt
 
 */
-fn generate_new_password_with_size(key: &[u8], title: &str, i: usize) -> (Vec<u8>, Vec<u8>) {
-    let mut rng = OsRng::new().ok().expect("OsRng init failed");
-    let salt : Vec<u8> = rng.gen_iter::<u8>().take(SALT_LENGTH).collect();
-    let pass = generate_password_with_salt(key, title, &salt, i);
-
-    (salt, pass)
-}
-
-fn generate_password_with_salt(key: &[u8], title: &str, salt: &Vec<u8>, i: usize) -> Vec<u8> {
+fn generate_password(key: &[u8], title: &str, salt: &Vec<u8>, i: usize) -> Vec<u8> {
     let mut cipher = Salsa20::new_xsalsa20(&key, salt);
     let clear_text = expand_to_at_least(i, title);
 
@@ -123,9 +115,11 @@ fn generate_password_with_salt(key: &[u8], title: &str, salt: &Vec<u8>, i: usize
     buf
 }
 
-fn generate_new_password(key: &[u8], title: &str) -> (Vec<u8>, Vec<u8>) {
-    generate_new_password_with_size(key, title, GENERATED_INPUT_LENGTH)
+fn generate_salt() -> Vec<u8> {
+    let mut rng = OsRng::new().ok().expect("OsRng init failed");
+    rng.gen_iter::<u8>().take(SALT_LENGTH).collect()
 }
+
 
 fn load_file(path: &str) -> Result<String, std::io::Error> {
     let mut f = try!(File::open(path));
@@ -248,6 +242,7 @@ fn main() {
 
 
     // Functionality that does not require loading the key
+    // ls
     if matches.is_present("ls") {
         let mut titles : Vec<&String>= old_data.metadata.keys().collect();
         titles.sort();
@@ -257,6 +252,7 @@ fn main() {
         return;
     }
 
+    // rm
     if let Some(ref matches) = matches.subcommand_matches("rm") {
         let title = matches.value_of("title").unwrap();
 
@@ -273,18 +269,7 @@ fn main() {
         return;
     }
 
-    // Functionality that does require loading the key
-    let key = load_or_create_key(&key_file_name);
-    if let Some(ref matches) = matches.subcommand_matches("get") {
-        let title = matches.value_of("title").unwrap();
-        let password = find_password_by_title_or_bail(&old_data, &title);
-        let decoded_salt : Vec<u8> = password.salt.from_base64().expect("Salt base64 decoding failed");
-        let pass = generate_password_with_salt(&key, title, &decoded_salt, GENERATED_INPUT_LENGTH);
-
-        println!("{}", cut_password(pass, password.format, password.length));
-        return;
-    }
-
+    // new
     if let Some(ref matches) = matches.subcommand_matches("new") {
         let title = matches.value_of("title").unwrap();
 
@@ -296,15 +281,27 @@ fn main() {
         let format = matches.value_of("format").unwrap_or(DEFAULT_FORMAT).parse::<u8>().unwrap();
         let length = matches.value_of("length").unwrap_or(DEFAULT_LENGTH).parse::<u16>().unwrap();
 
-        let (salt, pass) = generate_new_password(&key, title);
+        let salt = generate_salt();
         let pd = Password { salt: salt.to_base64(base64::STANDARD), format: format, length: length };
         old_data.insert(title, pd);
         let metadata_string = serde_json::to_string_pretty(&old_data).unwrap();
 
-        println!("{}", title);
-        println!("{}", cut_password(pass, format, length));
+        println!("{} added", title);
         save_data(&metadata_string, &data_file_name);
         set_file_perms(&data_file_name, 0o600);
+        return;
+    }
+
+    // Functionality that does require loading the key
+    // get
+    let key = load_or_create_key(&key_file_name);
+    if let Some(ref matches) = matches.subcommand_matches("get") {
+        let title = matches.value_of("title").unwrap();
+        let password = find_password_by_title_or_bail(&old_data, &title);
+        let decoded_salt : Vec<u8> = password.salt.from_base64().expect("Salt base64 decoding failed");
+        let pass = generate_password(&key, title, &decoded_salt, GENERATED_INPUT_LENGTH);
+
+        println!("{}", cut_password(pass, password.format, password.length));
         return;
     }
 
