@@ -6,7 +6,9 @@ Password metadata storager and xsalsa20 hasher
 Rust nightly compiler is needed, because I use Serde with compiler plugins. Once those get in stable, I'll start
 maintaining this against stable.
 
+```
 cargo install chaos
+```
 
 # usage
 
@@ -20,7 +22,7 @@ chaos help rm
 
 # security
 
-Who knows. Passwords are non-stored xsalsa20 hashes, generated from a metadata title, the generated key and a salt.
+Who knows. Passwords are non-stored xsalsa20 hashes, generated from a metadata title, the master key and a salt.
 
 It might be more secure than storing your passwords in a plain text file.
 
@@ -40,7 +42,7 @@ Actual passwords are not stored anywhere, but are computed by xsalsa20 and cut u
 # todo
 
 - zsh completion
+- 
 - remove magic 1024 and just generate a required length string
 - perhaps support a generic data field
 - perhaps try to secure memory
-- chaos hashes by "something you have" (title+key+salt), perhaps it also need a "something you only know" like an input password -- but that complificates the UI which I wouldn't want
