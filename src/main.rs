@@ -103,7 +103,7 @@ fn pack_into_password(hash: &[u8], format_choice: u8) -> String {
     }
 }
 
-fn expand_to_at_least<'a>(wanted_length: usize, base: &str) -> String {
+fn expand_to_at_least(wanted_length: usize, base: &str) -> String {
     let mut buf = String::new();
     while buf.len() < wanted_length {
         buf.push_str(&base);
@@ -121,8 +121,8 @@ fn expand_to_at_least<'a>(wanted_length: usize, base: &str) -> String {
 //    using given key and generated salt
 //
 //
-fn generate_password(key: &[u8], title: &str, salt: &Vec<u8>, i: usize) -> Vec<u8> {
-    let mut cipher = Salsa20::new_xsalsa20(&key, salt);
+fn generate_password(key: &[u8], title: &str, salt: Vec<u8>, i: usize) -> Vec<u8> {
+    let mut cipher = Salsa20::new_xsalsa20(&key, &salt);
     let clear_text = expand_to_at_least(i, title);
 
     let mut buf: Vec<u8> = repeat(0).take(i).collect();
@@ -318,7 +318,7 @@ fn main() {
         let decoded_salt: Vec<u8> = password.salt
                                             .from_base64()
                                             .expect("Salt base64 decoding failed");
-        let pass = generate_password(&key, title, &decoded_salt, GENERATED_INPUT_LENGTH);
+        let pass = generate_password(&key, title, decoded_salt, GENERATED_INPUT_LENGTH);
 
         println!("{}", cut_password(pass, password.format, password.length));
         return;
