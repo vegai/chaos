@@ -1,5 +1,6 @@
 #![feature(custom_derive, plugin)]
 #![plugin(serde_macros,clippy)]
+#![allow(used_underscore_binding)] // causes silly warnings on derive lines
 
 extern crate crypto;
 extern crate rustc_serialize as serialize;
