@@ -1,4 +1,4 @@
-#![feature(custom_derive, plugin)]
+#![feature(custom_derive, plugin,question_mark)]
 #![plugin(serde_macros,clippy)]
 #![allow(used_underscore_binding)] // causes silly warnings on derive lines
 
@@ -131,7 +131,7 @@ fn generate_password(key: &[u8], title: &str, salt: Vec<u8>, i: usize) -> Vec<u8
 }
 
 fn generate_salt() -> Vec<u8> {
-    let mut rng = OsRng::new().ok().expect("OsRng init failed");
+    let mut rng = OsRng::new().expect("OsRng init failed");
     rng.gen_iter::<u8>().take(SALT_LENGTH).collect()
 }
 
@@ -145,7 +145,7 @@ fn load_file(path: &str) -> Result<String, std::io::Error> {
 
 fn load_password_data(path: &str) -> Passwords {
     match load_file(path) {
-        Ok(d) => serde_json::from_str(&d).unwrap_or(Passwords::default()),
+        Ok(d) => serde_json::from_str(&d).ok().unwrap_or_default(), //(Passwords::default),
         Err(_) => Passwords::default(),
     }
 }
@@ -153,7 +153,7 @@ fn load_password_data(path: &str) -> Passwords {
 fn save_data(data: &str, filename: &str) {
     let mut f = File::create(filename).unwrap();
     f.write_all(data.as_bytes()).expect("Data file write failed");
-    f.write_all("\n".as_bytes()).expect("Newline write failed!");
+    f.write_all(b"\n").expect("Newline write failed!?");
     f.sync_all().expect("Sync failed");
 }
 
@@ -168,7 +168,7 @@ fn load_or_create_key(filename: &str) -> Vec<u8> {
         Ok(s) => s.from_base64().expect("Key base64 decoding failed"),
         Err(_) => {
             println!("Creating a new key in {}", filename);
-            let mut rng = OsRng::new().ok().expect("OsRng init failed");
+            let mut rng = OsRng::new().expect("OsRng init failed");
             let new_key: Vec<u8> = rng.gen_iter::<u8>().take(KEY_LENGTH).collect();
             let key_base64 = new_key.to_base64(base64::STANDARD);
             save_data(&key_base64, filename);
@@ -180,7 +180,6 @@ fn load_or_create_key(filename: &str) -> Vec<u8> {
 
 fn create_data_dir(data_dir: &str) {
     fs::create_dir_all(data_dir.to_string())
-        .ok()
         .expect(&format!("Creating data directory {} failed", data_dir));
     set_file_perms(&data_dir, 0o700);
 }
