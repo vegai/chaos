@@ -1,5 +1,5 @@
 #![feature(custom_derive, plugin)]
-#![plugin(serde_macros)]
+#![plugin(serde_macros,clippy)]
 
 extern crate crypto;
 extern crate rustc_serialize as serialize;
@@ -24,16 +24,17 @@ use clap::{Arg, App, SubCommand};
 use std::process::exit;
 use std::collections::HashMap;
 
+/*
 // not used until I know how to work with Serde
-// #[derive(Debug)]
-// enum FormatChoices {
-// AlphaNumAndSymbols, // 1
-// AlphaNum,           // 2
-// AlphaOnly,          // 3
-// NumOnly             // 4
-// BinaryOnlyLol       // 5
-// }
-//
+#[derive(Debug)]
+enum FormatChoices {
+AlphaNumAndSymbols, // 1
+AlphaNum,           // 2
+AlphaOnly,          // 3
+NumOnly             // 4
+BinaryOnlyLol       // 5
+}
+*/
 const DEFAULT_FORMAT: &'static str = "1";
 const DEFAULT_LENGTH: &'static str = "32";
 const SALT_LENGTH: usize = 24;
@@ -46,13 +47,16 @@ struct Passwords {
     metadata: HashMap<String, Password>,
 }
 
-impl Passwords {
-    fn new() -> Passwords {
+impl Default for Passwords {
+    fn default() -> Passwords {
         Passwords {
             version: 1,
             metadata: HashMap::new(),
         }
     }
+}
+
+impl Passwords {
 
     fn title_exists(&self, title: &str) -> bool {
         self.metadata.contains_key(title)
@@ -140,8 +144,8 @@ fn load_file(path: &str) -> Result<String, std::io::Error> {
 
 fn load_password_data(path: &str) -> Passwords {
     match load_file(path) {
-        Ok(d) => serde_json::from_str(&d).unwrap_or(Passwords::new()),
-        Err(_) => Passwords::new(),
+        Ok(d) => serde_json::from_str(&d).unwrap_or(Passwords::default()),
+        Err(_) => Passwords::default(),
     }
 }
 
