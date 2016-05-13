@@ -1,12 +1,13 @@
 # chaos
-Password metadata storager and xsalsa20 hasher
+Password metadata storager and xsalsa20 hasher. 
 
 # installation / requirements
 
 Rust stable (known to work on 1.8) needed to compile. 
 
 A way to reliably protect the unencrypted master key file (~/.chaos/key). Perhaps
-put it in a USB key that you always keep with you. 
+put it in a USB key that you always keep with you. Or keep it inside an encrypted volume that
+you only open for the duration of usage. 
 
 ```
 cargo install chaos
@@ -15,16 +16,43 @@ cargo install chaos
 # usage
 
 ```
-chaos help
-chaos help new
-chaos help get
-chaos help ls
-chaos help rm
+vegai@harmony ~ » ./chaos help
+chaos 
+Vesa Kaihlavirta <vegai@iki.fi>
+
+USAGE:
+    chaos [FLAGS] [SUBCOMMAND]
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+SUBCOMMANDS:
+    get     get entry
+    help    Prints this message or the help of the given subcommand(s)
+    ls      lists entries (default action if none specified)
+    new     generate new entry
+    rm      remove entry
+
+vegai@harmony ~ » chaos new meep
+meep added
+vegai@harmony ~ » chaos get meep
+Creating a new key in /home/vegai/.chaos/key
+~3MRPc4;>l7/rC_;}QdTc"$c^;4xL:Gp
+vegai@harmony ~ » chaos get meep
+~3MRPc4;>l7/rC_;}QdTc"$c^;4xL:Gp
+vegai@harmony ~ » chaos new simplesite -l 8 -f 3
+simplesite added
+vegai@harmony ~ » chaos get simplesite 
+BwUShpSy
 ```
 
 # security
 
-Who knows. Passwords are non-stored xsalsa20 hashes, generated from a metadata title, the master key and a salt.
+If the master key file can be protected well enough, it might be quite secure. Unfortunately, protecting
+single files from all intrusions on a typical desktop is nearly impossible.
+
+Passwords are non-stored xsalsa20 hashes, generated from a metadata title, the master key and a salt.
 
 It might be more secure than storing your passwords in a plain text file.
 
