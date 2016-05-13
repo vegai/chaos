@@ -1,21 +1,11 @@
-#![feature(custom_derive, plugin,question_mark)]
-#![plugin(serde_macros,clippy)]
-#![allow(used_underscore_binding)] // causes silly warnings on derive lines
-
 extern crate crypto;
 extern crate rustc_serialize as serialize;
-extern crate serde;
-extern crate serde_json;
 extern crate rand;
 extern crate shellexpand;
 #[macro_use]
 extern crate clap;
 
 use std::iter::repeat;
-use std::fs;
-use std::io::{Read, Write};
-use std::fs::File;
-use std::os::unix::fs::PermissionsExt;
 use crypto::salsa20::Salsa20;
 use crypto::symmetriccipher::SynchronousStreamCipher;
 use serialize::base64;
@@ -23,7 +13,10 @@ use serialize::base64::{FromBase64, ToBase64};
 use rand::{OsRng, Rng};
 use clap::{Arg, App, SubCommand};
 use std::process::exit;
-use std::collections::HashMap;
+use std::fs;
+
+pub mod data;
+use data::{Passwords, Password};
 
 /*
 // not used until I know how to work with Serde
@@ -42,38 +35,6 @@ const SALT_LENGTH: usize = 24;
 const KEY_LENGTH: usize = 32;
 const GENERATED_INPUT_LENGTH: usize = 1024;
 
-#[derive(Serialize, Deserialize, Debug)]
-struct Passwords {
-    version: u8,
-    metadata: HashMap<String, Password>,
-}
-
-impl Default for Passwords {
-    fn default() -> Passwords {
-        Passwords {
-            version: 1,
-            metadata: HashMap::new(),
-        }
-    }
-}
-
-impl Passwords {
-
-    fn title_exists(&self, title: &str) -> bool {
-        self.metadata.contains_key(title)
-    }
-
-    fn insert(&mut self, title: &str, password: Password) {
-        self.metadata.insert(title.to_string(), password);
-    }
-}
-
-#[derive(Serialize,Deserialize,Debug)]
-struct Password {
-    salt: String,
-    format: u8,
-    length: u16,
-}
 
 fn pack(allowed_chars: &str, hash: &[u8]) -> String {
     let source_len = allowed_chars.len();
@@ -136,43 +97,17 @@ fn generate_salt() -> Vec<u8> {
 }
 
 
-fn load_file(path: &str) -> Result<String, std::io::Error> {
-    let mut f = try!(File::open(path));
-    let mut s = String::new();
-    try!(f.read_to_string(&mut s));
-    Ok(s)
-}
-
-fn load_password_data(path: &str) -> Passwords {
-    match load_file(path) {
-        Ok(d) => serde_json::from_str(&d).ok().unwrap_or_default(), //(Passwords::default),
-        Err(_) => Passwords::default(),
-    }
-}
-
-fn save_data(data: &str, filename: &str) {
-    let mut f = File::create(filename).unwrap();
-    f.write_all(data.as_bytes()).expect("Data file write failed");
-    f.write_all(b"\n").expect("Newline write failed!?");
-    f.sync_all().expect("Sync failed");
-}
-
-fn set_file_perms(filename: &str, mode: u32) {
-    let mut perms = fs::metadata(filename).expect("Gettings perms failed").permissions();
-    perms.set_mode(mode);
-    fs::set_permissions(filename, perms).expect("Setting permission failed");
-}
 
 fn load_or_create_key(filename: &str) -> Vec<u8> {
-    match load_file(filename) {
+    match Passwords::load_file(filename) {
         Ok(s) => s.from_base64().expect("Key base64 decoding failed"),
         Err(_) => {
             println!("Creating a new key in {}", filename);
             let mut rng = OsRng::new().expect("OsRng init failed");
             let new_key: Vec<u8> = rng.gen_iter::<u8>().take(KEY_LENGTH).collect();
             let key_base64 = new_key.to_base64(base64::STANDARD);
-            save_data(&key_base64, filename);
-            set_file_perms(filename, 0o400);
+            Passwords::save_data(&key_base64, filename);
+            Passwords::set_file_perms(filename, 0o400);
             new_key
         }
     }
@@ -181,7 +116,7 @@ fn load_or_create_key(filename: &str) -> Vec<u8> {
 fn create_data_dir(data_dir: &str) {
     fs::create_dir_all(data_dir.to_string())
         .expect(&format!("Creating data directory {} failed", data_dir));
-    set_file_perms(&data_dir, 0o700);
+    Passwords::set_file_perms(&data_dir, 0o700);
 }
 
 
@@ -203,7 +138,6 @@ fn cut_password(pass: Vec<u8>, format: u8, length: u16) -> String {
 fn main() {
     let matches = App::new("chaos")
                       .author("Vesa Kaihlavirta <vegai@iki.fi>")
-                      .version(crate_version!())
                       .subcommand(SubCommand::with_name("ls").about("lists entries (default action if none specified)"))
                       .subcommand(SubCommand::with_name("rm")
                                       .about("remove entry")
@@ -250,7 +184,7 @@ fn main() {
     let key_file_name = format!("{}/key", data_dir);
     create_data_dir(&data_dir);
 
-    let mut old_data: Passwords = load_password_data(&data_file_name);
+    let mut old_data = Passwords::load_from_file(&data_file_name);
 
 
     // Functionality that does not require loading the key
@@ -275,9 +209,9 @@ fn main() {
 
         old_data.metadata.remove(title);
 
-        let metadata_string = serde_json::to_string_pretty(&old_data).unwrap();
-        save_data(&metadata_string, &data_file_name);
-        set_file_perms(&data_file_name, 0o600);
+        let metadata_string = old_data.to_string_pretty();
+        Passwords::save_data(&metadata_string, &data_file_name);
+        Passwords::set_file_perms(&data_file_name, 0o600);
         return;
     }
 
@@ -300,11 +234,11 @@ fn main() {
             length: length,
         };
         old_data.insert(title, pd);
-        let metadata_string = serde_json::to_string_pretty(&old_data).unwrap();
+        let metadata_string = old_data.to_string_pretty();
 
         println!("{} added", title);
-        save_data(&metadata_string, &data_file_name);
-        set_file_perms(&data_file_name, 0o600);
+        Passwords::save_data(&metadata_string, &data_file_name);
+        Passwords::set_file_perms(&data_file_name, 0o600);
         return;
     }
 
