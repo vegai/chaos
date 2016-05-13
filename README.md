@@ -43,8 +43,7 @@ Actual passwords are not stored anywhere, but are computed by xsalsa20 and cut u
 
 # todo
 
-- zsh completion
-- git ntegration 
+- git integration 
 - remove magic 1024 and just generate a required length string
 - perhaps support a generic data field
 - perhaps try to secure memory
