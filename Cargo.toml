@@ -7,13 +7,17 @@ license = "Unlicense"
 readme = "README.md"
 keywords = ["hasher", "password", "security", "simple", "cli"]
 authors = ["vegai@iki.fi"]
+build = "build.rs"
+
+[build-dependencies]
+serde_codegen="*"
+syntex="*"
 
 [dependencies]
 rust-crypto = "0.2"
 rustc-serialize = "0.3"
 serde = "0.7"
 serde_json = "0.7"
-serde_macros = "0.7"
 rand = "0.3"
 shellexpand = "0.1"
 clap = "2.3"
