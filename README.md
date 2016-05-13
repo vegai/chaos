@@ -49,12 +49,16 @@ BwUShpSy
 
 # security
 
+I'm not a security expert. Dabbler, at most. 
+
 If the master key file can be protected well enough, it might be quite secure. Unfortunately, protecting
 single files from all intrusions on a typical desktop is nearly impossible.
 
-Passwords are non-stored xsalsa20 hashes, generated from a metadata title, the master key and a salt.
+Passwords are xsalsa20 hashes, generated from a metadata title, the master key and a salt, both of which
+are kept unencrypted in ~/.chaos/
 
-It might be more secure than storing your passwords in a plain text file.
+It might be more secure than storing your passwords in a plain text file. It's quite a lot more secure
+than having "username123" as your password on every site.
 
 # details
 
