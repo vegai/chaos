@@ -45,6 +45,12 @@ vegai@harmony ~ » chaos new simplesite -l 8 -f 3
 simplesite added
 vegai@harmony ~ » chaos get simplesite 
 BwUShpSy
+vegai@harmony ~ » chaos new meep
+'meep' exists already. --force to overwrite
+vegai@harmony ~ » chaos new meep --force                                                                           1 ↵
+meep added
+vegai@harmony ~ » chaos get meep
+vL#6Pbz7@NU=D(DiMN696l.@QH4Z$MSP
 ```
 
 # security
