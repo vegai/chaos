@@ -10,8 +10,8 @@ authors = ["vegai@iki.fi"]
 build = "build.rs"
 
 [build-dependencies]
-serde_codegen="*"
-syntex="*"
+serde_codegen="0.7"
+syntex="0.32"
 
 [dependencies]
 rust-crypto = "0.2"

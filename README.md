@@ -34,9 +34,9 @@ SUBCOMMANDS:
     new     generate new entry
     rm      remove entry
 
-vegai@harmony ~ » chaos new meep
+vegai@harmony ~ » chaos new meep # adds a salt and metadata only...
 meep added
-vegai@harmony ~ » chaos get meep
+vegai@harmony ~ » chaos get meep # ... that's why master key is needed earliest here
 Creating a new key in /home/vegai/.chaos/key
 ~3MRPc4;>l7/rC_;}QdTc"$c^;4xL:Gp
 vegai@harmony ~ » chaos get meep
