@@ -3,8 +3,10 @@ Password metadata storager and xsalsa20 hasher
 
 # installation / requirements
 
-Rust nightly compiler is needed, because I use Serde with compiler plugins. Once those get in stable, I'll start
-maintaining this against stable.
+Rust stable (known to work on 1.8) needed to compile. 
+
+A way to reliably protect the unencrypted master key file (~/.chaos/key). Perhaps
+put it in a USB key that you always keep with you. 
 
 ```
 cargo install chaos
