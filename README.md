@@ -86,12 +86,13 @@ Actual passwords are not stored anywhere, but are computed by xsalsa20 and cut u
 
 # todo
 
-- git or pijul integration 
+- git integration (via git2 I think)
 - remove magic 1024 and just generate a required length string
-- perhaps support a generic data field
+- add a generic data field
 - perhaps try to secure memory
 - do not hash based on the title, that disallows renaming things without
 regeneration and does not really add to the security aspect at all
 - unit tests
 - refactor the data manipulation code away from the binary
 - travis integration
+- complain if data version is wrong 

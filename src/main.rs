@@ -29,7 +29,7 @@ NumOnly             // 4
 BinaryOnlyLol       // 5
 }
 */
-const DEFAULT_FORMAT: &'static str = "1";
+const DEFAULT_FORMAT: &'static str = "2";
 const DEFAULT_LENGTH: &'static str = "32";
 const SALT_LENGTH: usize = 24;
 const KEY_LENGTH: usize = 32;
@@ -64,10 +64,10 @@ fn pack_into_password(hash: &[u8], format_choice: u8) -> String {
     }
 }
 
-fn expand_to_at_least(wanted_length: usize, base: &str) -> String {
-    let mut buf = String::new();
+fn expand_to_at_least(wanted_length: usize, base: Vec<u8>) -> Vec<u8> {
+    let mut buf = vec!();
     while buf.len() < wanted_length {
-        buf.push_str(&base);
+        buf.extend(&base);
     }
     buf
 }
@@ -82,12 +82,12 @@ fn expand_to_at_least(wanted_length: usize, base: &str) -> String {
 //    using given key and generated salt
 //
 //
-fn generate_password(key: &[u8], title: &str, salt: Vec<u8>, i: usize) -> Vec<u8> {
+fn generate_password(key: &[u8], salt: Vec<u8>, i: usize) -> Vec<u8> {
     let mut cipher = Salsa20::new_xsalsa20(&key, &salt);
-    let clear_text = expand_to_at_least(i, title);
+    let clear_text = expand_to_at_least(i, salt);
 
     let mut buf: Vec<u8> = repeat(0).take(i).collect();
-    cipher.process(&clear_text.as_bytes()[0..i], &mut buf);
+    cipher.process(&clear_text[0..i], &mut buf);
     buf
 }
 
@@ -95,8 +95,6 @@ fn generate_salt() -> Vec<u8> {
     let mut rng = OsRng::new().expect("OsRng init failed");
     rng.gen_iter::<u8>().take(SALT_LENGTH).collect()
 }
-
-
 
 fn load_or_create_key(filename: &str) -> Vec<u8> {
     match Passwords::load_file(filename) {
@@ -251,7 +249,7 @@ fn main() {
         let decoded_salt: Vec<u8> = password.salt
                                             .from_base64()
                                             .expect("Salt base64 decoding failed");
-        let pass = generate_password(&key, title, decoded_salt, GENERATED_INPUT_LENGTH);
+        let pass = generate_password(&key, decoded_salt, GENERATED_INPUT_LENGTH);
 
         println!("{}", cut_password(pass, password.format, password.length));
         return;
