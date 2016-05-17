@@ -1,6 +1,11 @@
 # chaos
 Password metadata storager and xsalsa20 hasher. 
 
+# warnings
+
+The data structures aren't fixed yet, and I'll be probably changing them in ways
+that will totally break your existing data. 
+
 # installation / requirements
 
 Rust stable (known to work on 1.8) needed to compile. 
@@ -87,3 +92,6 @@ Actual passwords are not stored anywhere, but are computed by xsalsa20 and cut u
 - perhaps try to secure memory
 - do not hash based on the title, that disallows renaming things without
 regeneration and does not really add to the security aspect at all
+- unit tests
+- refactor the data manipulation code away from the binary
+- travis integration
