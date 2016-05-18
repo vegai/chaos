@@ -118,16 +118,6 @@ fn create_data_dir(data_dir: &str) {
 }
 
 
-fn find_password_by_title_or_bail<'a>(passwords: &'a Passwords, title: &str) -> &'a Password {
-    match passwords.metadata.get(title) {
-        Some(password) => password,
-        None => {
-            println!("'{}' does not exist.", title);
-            exit(2);
-        }
-    }
-}
-
 fn cut_password(pass: Vec<u8>, format: u8, length: u16) -> String {
     let packed_pass = pack_into_password(&*pass, format);
     packed_pass.chars().take(length as usize).collect()
@@ -245,7 +235,7 @@ fn main() {
     let key = load_or_create_key(&key_file_name);
     if let Some(ref matches) = matches.subcommand_matches("get") {
         let title = matches.value_of("title").unwrap();
-        let password = find_password_by_title_or_bail(&old_data, &title);
+        let password = old_data.find_by_title_or_bail(&title);
         let decoded_salt: Vec<u8> = password.salt
                                             .from_base64()
                                             .expect("Salt base64 decoding failed");

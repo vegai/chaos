@@ -4,6 +4,7 @@ use std::fs::File;
 use std;
 use std::io::{Read, Write};
 use std::os::unix::fs::PermissionsExt;
+use std::process::exit;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Passwords {
@@ -64,6 +65,17 @@ impl Passwords {
     pub fn to_string_pretty(&self) -> String {
         serde_json::to_string_pretty(self).unwrap()
     }
+
+    pub fn find_by_title_or_bail<'a>(&'a self, title: &str) -> &'a Password {
+        match self.metadata.get(title) {
+            Some(password) => password,
+            None => {
+                println!("'{}' does not exist.", title);
+                exit(2);
+            }
+        }
+    }
+
 }
 
 
