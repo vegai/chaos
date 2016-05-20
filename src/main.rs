@@ -249,5 +249,20 @@ fn main() {
 
 #[test]
 fn test_cut_password() {
-    assert!(false);
+    let pass = vec!(1, 1, 88, 240, 120, 150, 13, 21, 34, 55);
+
+    assert_eq!("11000011", cut_password(pass.clone(), 5, 8));
+    assert_eq!("110000", cut_password(pass.clone(), 5, 6));
+
+    assert_eq!("11800031", cut_password(pass.clone(), 4, 8));
+    assert_eq!("118000", cut_password(pass.clone(), 4, 6));
+
+    assert_eq!("bbKGqUnv", cut_password(pass.clone(), 3, 8));
+    assert_eq!("bbKGqU", cut_password(pass.clone(), 3, 6));
+
+    assert_eq!("bbA26Anv", cut_password(pass.clone(), 2, 8));
+    assert_eq!("bbA26A", cut_password(pass.clone(), 2, 6));
+
+    assert_eq!("\"\"yU;Y.6", cut_password(pass.clone(), 1, 8));
+    assert_eq!("\"\"yU;Y", cut_password(pass.clone(), 1, 6));
 }
