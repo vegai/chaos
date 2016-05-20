@@ -15,8 +15,8 @@ use clap::{Arg, App, SubCommand};
 use std::process::exit;
 use std::fs;
 
-pub mod data;
-use data::{Passwords, Password};
+pub mod lib;
+use lib::{Passwords, Password};
 
 /*
 // not used until I know how to work with Serde
