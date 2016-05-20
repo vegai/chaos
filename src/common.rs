@@ -4,20 +4,19 @@ extern crate rand;
 
 use std::iter::repeat;
 use std::fs;
-use crypto::salsa20::Salsa20;
-use crypto::symmetriccipher::SynchronousStreamCipher;
-use serialize::base64;
-use serialize::base64::{FromBase64, ToBase64};
-use rand::{OsRng, Rng};
+use self::crypto::salsa20::Salsa20;
+use self::crypto::symmetriccipher::SynchronousStreamCipher;
+use self::serialize::base64;
+use self::serialize::base64::{FromBase64, ToBase64};
+use self::rand::{OsRng, Rng};
 
-pub use model::*;
+use super::model::{Passwords};
 
-
-const DEFAULT_FORMAT: &'static str = "2";
-const DEFAULT_LENGTH: &'static str = "32";
-const SALT_LENGTH: usize = 24;
-const KEY_LENGTH: usize = 32;
-const GENERATED_INPUT_LENGTH: usize = 1024;
+pub const DEFAULT_FORMAT: &'static str = "2";
+pub const DEFAULT_LENGTH: &'static str = "32";
+pub const SALT_LENGTH: usize = 24;
+pub const KEY_LENGTH: usize = 32;
+pub const GENERATED_INPUT_LENGTH: usize = 1024;
 
 fn pack(allowed_chars: &str, hash: &[u8]) -> String {
     let source_len = allowed_chars.len();
@@ -70,7 +69,7 @@ fn expand_to_at_least(wanted_length: usize, base: Vec<u8>) -> Vec<u8> {
 //    using given key and generated salt
 //
 //
-fn generate_password(key: &[u8], salt: Vec<u8>, i: usize) -> Vec<u8> {
+pub fn generate_password(key: &[u8], salt: Vec<u8>, i: usize) -> Vec<u8> {
     let mut cipher = Salsa20::new_xsalsa20(&key, &salt);
     let clear_text = expand_to_at_least(i, salt);
 
@@ -79,12 +78,12 @@ fn generate_password(key: &[u8], salt: Vec<u8>, i: usize) -> Vec<u8> {
     buf
 }
 
-fn generate_salt() -> Vec<u8> {
+pub fn generate_salt() -> Vec<u8> {
     let mut rng = OsRng::new().expect("OsRng init failed");
     rng.gen_iter::<u8>().take(SALT_LENGTH).collect()
 }
 
-fn load_or_create_key(filename: &str) -> Vec<u8> {
+pub fn load_or_create_key(filename: &str) -> Vec<u8> {
     match Passwords::load_file(filename) {
         Ok(s) => s.from_base64().expect("Key base64 decoding failed"),
         Err(_) => {
@@ -99,7 +98,7 @@ fn load_or_create_key(filename: &str) -> Vec<u8> {
     }
 }
 
-fn create_data_dir(data_dir: &str) {
+pub fn create_data_dir(data_dir: &str) {
     fs::create_dir_all(data_dir.to_string())
         .expect(&format!("Creating data directory {} failed", data_dir));
     Passwords::set_file_perms(&data_dir, 0o700);

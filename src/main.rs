@@ -1,14 +1,18 @@
+
+extern crate rustc_serialize as serialize;
 extern crate shellexpand;
 #[macro_use]
 extern crate clap;
 
 use clap::{Arg, App, SubCommand};
 use std::process::exit;
+use serialize::base64;
+use serialize::base64::{FromBase64, ToBase64};
 
 mod model;
-mod lib;
-use model::{Passwords, Password};
-use lib::{cut_password};
+mod common;
+//use model;
+//use common;
 
 /*
 // not used until I know how to work with Serde
@@ -72,9 +76,9 @@ fn main() {
     let data_dir = shellexpand::tilde("~/.chaos");
     let data_file_name = format!("{}/data.json", data_dir);
     let key_file_name = format!("{}/key", data_dir);
-    create_data_dir(&data_dir);
+    common::create_data_dir(&data_dir);
 
-    let mut old_data = Passwords::load_from_file(&data_file_name);
+    let mut old_data = model::Passwords::load_from_file(&data_file_name);
 
 
     // Functionality that does not require loading the key
@@ -100,8 +104,8 @@ fn main() {
         old_data.metadata.remove(title);
 
         let metadata_string = old_data.to_string_pretty();
-        Passwords::save_data(&metadata_string, &data_file_name);
-        Passwords::set_file_perms(&data_file_name, 0o600);
+        model::Passwords::save_data(&metadata_string, &data_file_name);
+        model::Passwords::set_file_perms(&data_file_name, 0o600);
         return;
     }
 
@@ -114,11 +118,11 @@ fn main() {
             exit(1);
         }
 
-        let format = matches.value_of("format").unwrap_or(DEFAULT_FORMAT).parse::<u8>().unwrap();
-        let length = matches.value_of("length").unwrap_or(DEFAULT_LENGTH).parse::<u16>().unwrap();
+        let format = matches.value_of("format").unwrap_or(common::DEFAULT_FORMAT).parse::<u8>().unwrap();
+        let length = matches.value_of("length").unwrap_or(common::DEFAULT_LENGTH).parse::<u16>().unwrap();
 
-        let salt = generate_salt();
-        let pd = Password {
+        let salt = common::generate_salt();
+        let pd = model::Password {
             salt: salt.to_base64(base64::STANDARD),
             format: format,
             length: length,
@@ -127,23 +131,23 @@ fn main() {
         let metadata_string = old_data.to_string_pretty();
 
         println!("{} added", title);
-        Passwords::save_data(&metadata_string, &data_file_name);
-        Passwords::set_file_perms(&data_file_name, 0o600);
+        model::Passwords::save_data(&metadata_string, &data_file_name);
+        model::Passwords::set_file_perms(&data_file_name, 0o600);
         return;
     }
 
     // Functionality that does require loading the key
     // get
-    let key = load_or_create_key(&key_file_name);
+    let key = common::load_or_create_key(&key_file_name);
     if let Some(ref matches) = matches.subcommand_matches("get") {
         let title = matches.value_of("title").unwrap();
         let password = old_data.find_by_title_or_bail(&title);
         let decoded_salt: Vec<u8> = password.salt
                                             .from_base64()
                                             .expect("Salt base64 decoding failed");
-        let pass = generate_password(&key, decoded_salt, GENERATED_INPUT_LENGTH);
+        let pass = common::generate_password(&key, decoded_salt, common::GENERATED_INPUT_LENGTH);
 
-        println!("{}", cut_password(pass, password.format, password.length));
+        println!("{}", common::cut_password(pass, password.format, password.length));
         return;
     }
 
