@@ -4,7 +4,6 @@ rust: stable
 
 os:
   - linux
-  - osx
 
 cache:
   apt: true
