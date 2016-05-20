@@ -1,6 +1,7 @@
 
 # chaos
 [![Build Status](https://travis-ci.org/vegai/chaos.svg?branch=master)](https://travis-ci.org/vegai/chaos)
+[![Coverage Status](https://coveralls.io/repos/github/vegai/chaos/badge.svg?branch=master)](https://coveralls.io/github/vegai/chaos?branch=master)
 
 Password metadata storager and xsalsa20 hasher. 
 
