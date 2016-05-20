@@ -1,3 +1,5 @@
+[travis]
+
 # chaos
 Password metadata storager and xsalsa20 hasher. 
 
