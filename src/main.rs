@@ -11,8 +11,6 @@ use serialize::base64::{FromBase64, ToBase64};
 
 mod model;
 mod common;
-//use model;
-//use common;
 
 /*
 // not used until I know how to work with Serde
@@ -25,9 +23,6 @@ NumOnly             // 4
 BinaryOnlyLol       // 5
 }
 */
-
-
-
 
 fn main() {
     let matches = App::new("chaos")
