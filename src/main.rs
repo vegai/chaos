@@ -55,7 +55,7 @@ fn pack_into_password(hash: &[u8], format_choice: u8) -> String {
         }
         2 => {
             pack("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-                 hash)
+                hash)
         }
         3 => pack("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", hash),
         4 => pack("0123456789", hash),
@@ -245,4 +245,9 @@ fn main() {
         return;
     }
 
+}
+
+#[test]
+fn test_cut_password() {
+    assert!(false);
 }
