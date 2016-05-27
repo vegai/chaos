@@ -1,4 +1,3 @@
-
 extern crate rustc_serialize as serialize;
 extern crate shellexpand;
 #[macro_use]
@@ -117,8 +116,10 @@ fn main() {
         let length = matches.value_of("length").unwrap_or(common::DEFAULT_LENGTH).parse::<u16>().unwrap();
 
         let salt = common::generate_salt();
+        let meat = common::generate_meat(length as usize);
         let pd = model::Password {
             salt: salt.to_base64(base64::STANDARD),
+            meat: meat.to_base64(base64::STANDARD),
             format: format,
             length: length,
         };
@@ -137,10 +138,13 @@ fn main() {
     if let Some(ref matches) = matches.subcommand_matches("get") {
         let title = matches.value_of("title").unwrap();
         let password = old_data.find_by_title_or_bail(&title);
+        let decoded_meat: Vec<u8> = password.meat
+            .from_base64()
+            .expect("Meat base64 decoding failed");
         let decoded_salt: Vec<u8> = password.salt
                                             .from_base64()
                                             .expect("Salt base64 decoding failed");
-        let pass = common::generate_password(&key, decoded_salt, common::GENERATED_INPUT_LENGTH);
+        let pass = common::generate_password(&key, decoded_meat, decoded_salt, password.length as usize);
 
         println!("{}", common::cut_password(pass, password.format, password.length));
         return;

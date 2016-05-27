@@ -17,9 +17,8 @@ use self::rand::{OsRng, Rng};
 
 pub const DEFAULT_FORMAT: &'static str = "2";
 pub const DEFAULT_LENGTH: &'static str = "32";
-pub const SALT_LENGTH: usize = 24;
-pub const KEY_LENGTH: usize = 32;
-pub const GENERATED_INPUT_LENGTH: usize = 1024;
+const SALT_LENGTH: usize = 24;
+const KEY_LENGTH: usize = 32;
 
 fn pack(allowed_chars: &str, hash: &[u8]) -> String {
     let source_len = allowed_chars.len();
@@ -54,13 +53,6 @@ pub fn cut_password(pass: Vec<u8>, format: u8, length: u16) -> String {
     let packed_pass = pack_into_password(&*pass, format);
     packed_pass.chars().take(length as usize).collect()
 }
-fn expand_to_at_least(wanted_length: usize, base: Vec<u8>) -> Vec<u8> {
-    let mut buf = vec!();
-    while buf.len() < wanted_length {
-        buf.extend(&base);
-    }
-    buf
-}
 
 // Generates a new password bytestream.
 //
@@ -72,18 +64,21 @@ fn expand_to_at_least(wanted_length: usize, base: Vec<u8>) -> Vec<u8> {
 //    using given key and generated salt
 //
 //
-pub fn generate_password(key: &[u8], salt: Vec<u8>, i: usize) -> Vec<u8> {
+pub fn generate_password(key: &[u8], meat: Vec<u8>, salt: Vec<u8>, i: usize) -> Vec<u8> {
     let mut cipher = Salsa20::new_xsalsa20(&key, &salt);
-    let clear_text = expand_to_at_least(i, salt);
-
     let mut buf: Vec<u8> = repeat(0).take(i).collect();
-    cipher.process(&clear_text[0..i], &mut buf);
+    cipher.process(&meat, &mut buf);
     buf
 }
 
 pub fn generate_salt() -> Vec<u8> {
     let mut rng = OsRng::new().expect("OsRng init failed");
     rng.gen_iter::<u8>().take(SALT_LENGTH).collect()
+}
+
+pub fn generate_meat(i: usize) -> Vec<u8> {
+    let mut rng = OsRng::new().expect("OsRng init failed");
+    rng.gen_iter::<u8>().take(i).collect()
 }
 
 pub fn load_or_create_key(filename: &str) -> Vec<u8> {
