@@ -11,17 +11,6 @@ use serialize::base64::{FromBase64, ToBase64};
 mod model;
 mod common;
 
-/*
-// not used until I know how to work with Serde
-#[derive(Debug)]
-enum FormatChoices {
-AlphaNumAndSymbols, // 1
-AlphaNum,           // 2
-AlphaOnly,          // 3
-NumOnly             // 4
-BinaryOnlyLol       // 5
-}
-*/
 
 fn main() {
     let matches = App::new("chaos")
@@ -112,7 +101,11 @@ fn main() {
             exit(1);
         }
 
-        let format = matches.value_of("format").unwrap_or(common::DEFAULT_FORMAT).parse::<u8>().unwrap();
+        let format_string = matches.value_of("format");
+//        let format = serde_json::from_str(&format_stringw
+        //).ok().unwrap_or_default();
+        //        .unwrap_or_default().parse::<model::FormatChowice>().unwrap();
+        let format = model::FormatChoice::get_from_parameter(format_string.unwrap());
         let length = matches.value_of("length").unwrap_or(common::DEFAULT_LENGTH).parse::<u16>().unwrap();
 
         let salt = common::generate_salt();
@@ -147,7 +140,7 @@ fn main() {
                                             .expect("Salt base64 decoding failed");
         let pass = common::generate_password(&key, decoded_meat, decoded_salt, password.length as usize);
 
-        println!("{}", common::cut_password(pass, password.format, password.length));
+        println!("{}", password.cut(pass));
         return;
     }
 

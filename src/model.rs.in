@@ -1,12 +1,39 @@
 use std::collections::HashMap;
 use std::process::exit;
-
 use super::common;
+
+
+// not used until I know how to work with Serde
+#[derive(Serialize, Deserialize, Debug)]
+pub enum FormatChoice {
+    AlphaNumAndSymbols,
+    AlphaNum,
+    AlphaOnly,
+    NumOnly,
+    BinaryOnlyLol
+}
+
+impl Default for FormatChoice {
+    fn default() -> FormatChoice {
+        FormatChoice::AlphaNumAndSymbols
+    }
+}
+
+impl FormatChoice {
+    pub fn get_from_parameter(param: &str) -> FormatChoice {
+        match param {
+            _ => {
+                println!("Uknown param {}!", param);
+                FormatChoice::BinaryOnlyLol
+            }
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Passwords {
     version: u8,
-    pub metadata: HashMap<String, Password>,
+    pub metadata: HashMap<String, Password>
 }
 
 #[derive(Serialize,Deserialize,Debug)]
@@ -14,7 +41,7 @@ pub struct Password {
     pub salt: String,
     pub meat: String,
     pub metadata: String,
-    pub format: u8,
+    pub format: FormatChoice,
     pub length: u16,
 }
 
@@ -26,6 +53,7 @@ impl Default for Passwords {
         }
     }
 }
+
 
 impl Passwords {
     pub fn title_exists(&self, title: &str) -> bool {
@@ -57,4 +85,40 @@ impl Passwords {
         }
     }
 }
+
+fn pack(allowed_chars: &str, hash: &[u8]) -> String {
+    let source_len = allowed_chars.len();
+    let mut output = String::new();
+    for &byte in hash {
+        let n = (byte % source_len as u8) as usize;
+        output.push(allowed_chars.chars().nth(n).unwrap());
+    }
+    output
+}
+
+
+impl Password {
+    fn pack_into_password(&self, hash: &[u8]) -> String {
+        match self.format {
+            FormatChoice::AlphaNumAndSymbols => {
+                pack("!\"#$%&'()*+,-./0123456789:;\
+                      <=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+                     hash)
+            }
+            FormatChoice::AlphaNum => {
+                pack("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+                     hash)
+            }
+            FormatChoice::AlphaOnly => pack("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", hash),
+            FormatChoice::NumOnly => pack("0123456789", hash),
+            FormatChoice::BinaryOnlyLol => pack("01", hash)
+        }
+    }
+
+    pub fn cut(&self, pass: Vec<u8>) -> String {
+        let packed_pass = self.pack_into_password(&*pass);
+        packed_pass.chars().take(self.length as usize).collect()
+    }
+}
+
 

@@ -15,44 +15,10 @@ use self::serialize::base64;
 use self::serialize::base64::{FromBase64, ToBase64};
 use self::rand::{OsRng, Rng};
 
-pub const DEFAULT_FORMAT: &'static str = "2";
 pub const DEFAULT_LENGTH: &'static str = "32";
 const SALT_LENGTH: usize = 24;
 const KEY_LENGTH: usize = 32;
 
-fn pack(allowed_chars: &str, hash: &[u8]) -> String {
-    let source_len = allowed_chars.len();
-    let mut output = String::new();
-    for &byte in hash {
-        let n = (byte % source_len as u8) as usize;
-        output.push(allowed_chars.chars().nth(n).unwrap());
-    }
-    output
-}
-
-
-fn pack_into_password(hash: &[u8], format_choice: u8) -> String {
-    match format_choice {
-        1 => {
-            pack("!\"#$%&'()*+,-./0123456789:;\
-                  <=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
-                 hash)
-        }
-        2 => {
-            pack("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-                 hash)
-        }
-        3 => pack("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", hash),
-        4 => pack("0123456789", hash),
-        5 => pack("01", hash), // stupider than the above, but not by much
-        _ => panic!("Invalid format choice {}", format_choice),
-    }
-}
-
-pub fn cut_password(pass: Vec<u8>, format: u8, length: u16) -> String {
-    let packed_pass = pack_into_password(&*pass, format);
-    packed_pass.chars().take(length as usize).collect()
-}
 
 // Generates a new password bytestream.
 //
