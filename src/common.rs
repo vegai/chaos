@@ -19,17 +19,6 @@ pub const DEFAULT_LENGTH: &'static str = "32";
 const SALT_LENGTH: usize = 24;
 const KEY_LENGTH: usize = 32;
 
-
-// Generates a new password bytestream.
-//
-// Algorithm:
-//
-// 1. Generate a random SALT_LENGTH byte salt
-// 2. Repeat title until it reaches at least i bytes
-// 3. Generate a cipher text using xsalsa20, with above string as input,
-//    using given key and generated salt
-//
-//
 pub fn generate_password(key: &[u8], meat: Vec<u8>, salt: Vec<u8>, i: usize) -> Vec<u8> {
     let mut cipher = Salsa20::new_xsalsa20(&key, &salt);
     let mut buf: Vec<u8> = repeat(0).take(i).collect();
