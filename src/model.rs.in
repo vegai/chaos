@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::fs;
-use std::io;
-use std::fs::File;
 use std::io::{Read, Write};
 use std::os::unix::fs::PermissionsExt;
 use std::process::exit;
+
+use super::common;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Passwords {
@@ -36,30 +36,12 @@ impl Passwords {
     pub fn insert(&mut self, title: &str, password: Password) {
         self.metadata.insert(title.to_string(), password);
     }
+
     pub fn load_from_file(path: &str) -> Passwords {
-        match Passwords::load_file(path) {
+        match common::load_file(path) {
             Ok(d) => serde_json::from_str(&d).ok().unwrap_or_default(), //(Passwords::default),
             Err(_) => Passwords::default(),
         }
-    }
-    pub fn load_file(path: &str) -> Result<String, io::Error> {
-        let mut f = try!(File::open(path));
-        let mut s = String::new();
-        try!(f.read_to_string(&mut s));
-        Ok(s)
-    }
-
-    pub fn save_data(data: &str, filename: &str) {
-        let mut f = File::create(filename).unwrap();
-        f.write_all(data.as_bytes()).expect("Data file write failed");
-        f.write_all(b"\n").expect("Newline write failed!?");
-        f.sync_all().expect("Sync failed");
-    }
-
-    pub fn set_file_perms(filename: &str, mode: u32) {
-        let mut perms = fs::metadata(filename).expect("Gettings perms failed").permissions();
-        perms.set_mode(mode);
-        fs::set_permissions(filename, perms).expect("Setting permission failed");
     }
 
     pub fn to_string_pretty(&self) -> String {
@@ -75,6 +57,5 @@ impl Passwords {
             }
         }
     }
-
 }
 
