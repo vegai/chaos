@@ -6,13 +6,14 @@ use std::iter::repeat;
 use std::fs;
 use std::io;
 use std::fs::File;
+use std::io::{Read, Write};
+use std::os::unix::fs::PermissionsExt;
+
 use self::crypto::salsa20::Salsa20;
 use self::crypto::symmetriccipher::SynchronousStreamCipher;
 use self::serialize::base64;
 use self::serialize::base64::{FromBase64, ToBase64};
 use self::rand::{OsRng, Rng};
-
-use super::model::{Passwords};
 
 pub const DEFAULT_FORMAT: &'static str = "2";
 pub const DEFAULT_LENGTH: &'static str = "32";
@@ -103,7 +104,7 @@ pub fn load_or_create_key(filename: &str) -> Vec<u8> {
 pub fn create_data_dir(data_dir: &str) {
     fs::create_dir_all(data_dir.to_string())
         .expect(&format!("Creating data directory {} failed", data_dir));
-    Passwords::set_file_perms(&data_dir, 0o700);
+    set_file_perms(&data_dir, 0o700);
 }
 
 pub fn load_file(path: &str) -> Result<String, io::Error> {

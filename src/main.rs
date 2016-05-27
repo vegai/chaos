@@ -99,8 +99,8 @@ fn main() {
         old_data.metadata.remove(title);
 
         let metadata_string = old_data.to_string_pretty();
-        model::Passwords::save_data(&metadata_string, &data_file_name);
-        model::Passwords::set_file_perms(&data_file_name, 0o600);
+        common::save_data(&metadata_string, &data_file_name);
+        common::set_file_perms(&data_file_name, 0o600);
         return;
     }
 
@@ -126,8 +126,8 @@ fn main() {
         let metadata_string = old_data.to_string_pretty();
 
         println!("{} added", title);
-        model::Passwords::save_data(&metadata_string, &data_file_name);
-        model::Passwords::set_file_perms(&data_file_name, 0o600);
+        common::save_data(&metadata_string, &data_file_name);
+        common::set_file_perms(&data_file_name, 0o600);
         return;
     }
 
