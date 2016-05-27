@@ -120,6 +120,7 @@ fn main() {
         let pd = model::Password {
             salt: salt.to_base64(base64::STANDARD),
             meat: meat.to_base64(base64::STANDARD),
+            metadata: String::new()
             format: format,
             length: length,
         };

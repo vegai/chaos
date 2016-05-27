@@ -13,6 +13,7 @@ pub struct Passwords {
 pub struct Password {
     pub salt: String,
     pub meat: String,
+    pub metadata: String,
     pub format: u8,
     pub length: u16,
 }
