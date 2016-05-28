@@ -57,7 +57,7 @@ impl Passwords {
 
     pub fn load_from_file(path: &str) -> Passwords {
         match common::load_file(path) {
-            Ok(d) => serde_json::from_str(&d).ok().unwrap_or_default(), //(Passwords::default),
+            Ok(d) => serde_json::from_str(&d).ok().unwrap_or_default(),
             Err(_) => Passwords::default(),
         }
     }
