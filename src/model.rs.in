@@ -36,38 +36,6 @@ pub struct Passwords {
     pub metadata: HashMap<String, Password>
 }
 
-#[derive(Serialize,Deserialize,Debug)]
-pub struct Password {
-    pub salt: String,
-    pub meat: String,
-    pub text: String,
-    pub format: FormatChoice,
-    pub length: u16,
-}
-impl Default for Password {
-    fn default() -> Password {
-        Password {
-            salt: "".to_string(),
-            meat: "".to_string(),
-            text: "".to_string(),
-            length: 32,
-            format: FormatChoice::default(),
-        }
-    }
-}
-
-impl Password {
-    fn new_for_test(format: FormatChoice, length: u16) -> Password {
-        Password {
-            salt: "".to_string(),
-            meat: "".to_string(),
-            text: "".to_string(),
-            length: length,
-            format: format
-        }
-    }
-}
-
 impl Default for Passwords {
     fn default() -> Passwords {
         Passwords {
@@ -109,18 +77,37 @@ impl Passwords {
     }
 }
 
-fn pack(allowed_chars: &str, hash: &[u8]) -> String {
-    let source_len = allowed_chars.len();
-    let mut output = String::new();
-    for &byte in hash {
-        let n = (byte % source_len as u8) as usize;
-        output.push(allowed_chars.chars().nth(n).unwrap());
-    }
-    output
+#[derive(Serialize,Deserialize,Debug)]
+pub struct Password {
+    pub salt: String,
+    pub meat: String,
+    pub text: String,
+    pub format: FormatChoice,
+    pub length: u16,
 }
 
+impl Default for Password {
+    fn default() -> Password {
+        Password {
+            salt: "".to_string(),
+            meat: "".to_string(),
+            text: "".to_string(),
+            length: 32,
+            format: FormatChoice::default(),
+        }
+    }
+}
 
 impl Password {
+    fn new_for_test(format: FormatChoice, length: u16) -> Password {
+        Password {
+            salt: "".to_string(),
+            meat: "".to_string(),
+            text: "".to_string(),
+            length: length,
+            format: format
+        }
+    }
     fn pack_into_password(&self, hash: &[u8]) -> String {
         match self.format {
             FormatChoice::AlphaNumAndSymbols => {
@@ -142,6 +129,16 @@ impl Password {
         let packed_pass = self.pack_into_password(&*pass);
         packed_pass.chars().take(self.length as usize).collect()
     }
+}
+
+fn pack(allowed_chars: &str, hash: &[u8]) -> String {
+    let source_len = allowed_chars.len();
+    let mut output = String::new();
+    for &byte in hash {
+        let n = (byte % source_len as u8) as usize;
+        output.push(allowed_chars.chars().nth(n).unwrap());
+    }
+    output
 }
 
 
