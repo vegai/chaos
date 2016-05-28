@@ -77,3 +77,26 @@ pub fn set_file_perms(filename: &str, mode: u32) {
     fs::set_permissions(filename, perms).expect("Setting permission failed");
 }
 
+#[test]
+fn test_generate_salt() {
+    let salt1 = generate_salt();
+    let salt2 = generate_salt();
+    assert!(salt1 != salt2);
+}
+
+#[test]
+fn test_generate_meat() {
+    let meat1 = generate_meat(8);
+    let meat2 = generate_meat(8);
+    assert!(meat1 != meat2);
+    assert_eq!(8, meat1.len());
+    assert_eq!(8, meat2.len());
+}
+
+
+#[test]
+fn test_generate_password() {
+    let pass1 = generate_password(&[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32], vec!(1, 2), vec!(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24), 2);
+    assert_eq!(vec!(230, 6), pass1);
+
+}
