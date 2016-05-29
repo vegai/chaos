@@ -115,7 +115,6 @@ fn main() {
             meat: meat.to_base64(base64::STANDARD),
             text: String::new(),
             format: format,
-            length: length,
         };
         old_data.insert(title, pd);
         let metadata_string = old_data.to_string_pretty();
@@ -138,7 +137,7 @@ fn main() {
         let decoded_salt: Vec<u8> = password.salt
                                             .from_base64()
                                             .expect("Salt base64 decoding failed");
-        let pass = common::generate_password(&key, decoded_meat, decoded_salt, password.length as usize);
+        let pass = common::generate_password(&key, decoded_meat, decoded_salt);
 
         println!("{}", password.cut(pass));
         return;

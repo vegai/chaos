@@ -19,9 +19,9 @@ pub const DEFAULT_LENGTH: &'static str = "32";
 const SALT_LENGTH: usize = 24;
 const KEY_LENGTH: usize = 32;
 
-pub fn generate_password(key: &[u8], meat: Vec<u8>, salt: Vec<u8>, i: usize) -> Vec<u8> {
+pub fn generate_password(key: &[u8], meat: Vec<u8>, salt: Vec<u8>) -> Vec<u8> {
     let mut cipher = Salsa20::new_xsalsa20(&key, &salt);
-    let mut buf: Vec<u8> = repeat(0).take(i).collect();
+    let mut buf: Vec<u8> = repeat(0).take(meat.len()).collect();
     cipher.process(&meat, &mut buf);
     buf
 }
@@ -101,7 +101,7 @@ mod tests {
 
     #[test]
     fn test_generate_password() {
-        let pass1 = generate_password(&[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32], vec!(1, 2), vec!(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24), 2);
+        let pass1 = generate_password(&[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32], vec!(1, 2), vec!(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24));
         assert_eq!(vec!(230, 6), pass1);
 
     }
