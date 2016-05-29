@@ -99,15 +99,6 @@ impl Default for Password {
 }
 
 impl Password {
-    fn new_for_test(format: FormatChoice, length: u16) -> Password {
-        Password {
-            salt: "".to_string(),
-            meat: "".to_string(),
-            text: "".to_string(),
-            length: length,
-            format: format
-        }
-    }
     fn pack_into_password(&self, hash: &[u8]) -> String {
         match self.format {
             FormatChoice::AlphaNumAndSymbols => {
@@ -142,67 +133,84 @@ fn pack(allowed_chars: &str, hash: &[u8]) -> String {
 }
 
 
-#[test]
-fn test_cut_binary_password() {
-    let pass = vec!(1, 1, 88, 240, 120, 150, 13, 21, 34, 55);
-    let password = Password::new_for_test(FormatChoice::BinaryOnlyLol, 8);
-    assert_eq!("11000011", password.cut(pass.clone()));
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    impl Password {
+        fn new_for_test(format: FormatChoice, length: u16) -> Password {
+            Password {
+                salt: "".to_string(),
+                meat: "".to_string(),
+                text: "".to_string(),
+                length: length,
+                format: format
+            }
+        }
+    }
+
+    #[test]
+    fn test_cut_binary_password() {
+        let pass = vec!(1, 1, 88, 240, 120, 150, 13, 21, 34, 55);
+        let password = Password::new_for_test(FormatChoice::BinaryOnlyLol, 8);
+        assert_eq!("11000011", password.cut(pass.clone()));
 
 
-    let password = Password::new_for_test(FormatChoice::BinaryOnlyLol, 6);
-    assert_eq!("110000", password.cut(pass.clone()));
-}
+        let password = Password::new_for_test(FormatChoice::BinaryOnlyLol, 6);
+        assert_eq!("110000", password.cut(pass.clone()));
+    }
 
-#[test]
-fn test_cut_numeral_password() {
-    let pass = vec!(1, 1, 88, 240, 120, 150, 13, 21, 34, 55);
-    let password = Password::new_for_test(FormatChoice::NumOnly, 8);
-    assert_eq!("11800031", password.cut(pass.clone()));
+    #[test]
+    fn test_cut_numeral_password() {
+        let pass = vec!(1, 1, 88, 240, 120, 150, 13, 21, 34, 55);
+        let password = Password::new_for_test(FormatChoice::NumOnly, 8);
+        assert_eq!("11800031", password.cut(pass.clone()));
 
-    let password = Password::new_for_test(FormatChoice::NumOnly, 6);
-    assert_eq!("118000", password.cut(pass.clone()));
-}
+        let password = Password::new_for_test(FormatChoice::NumOnly, 6);
+        assert_eq!("118000", password.cut(pass.clone()));
+    }
 
-#[test]
-fn test_cut_alphaonly_password() {
-    let pass = vec!(1, 1, 88, 240, 120, 150, 13, 21, 34, 55);
-    let password = Password::new_for_test(FormatChoice::AlphaOnly, 8);
-    assert_eq!("bbKGqUnv", password.cut(pass.clone()));
+    #[test]
+    fn test_cut_alphaonly_password() {
+        let pass = vec!(1, 1, 88, 240, 120, 150, 13, 21, 34, 55);
+        let password = Password::new_for_test(FormatChoice::AlphaOnly, 8);
+        assert_eq!("bbKGqUnv", password.cut(pass.clone()));
 
-    let password = Password::new_for_test(FormatChoice::AlphaOnly, 6);
-    assert_eq!("bbKGqU", password.cut(pass.clone()));
-}
+        let password = Password::new_for_test(FormatChoice::AlphaOnly, 6);
+        assert_eq!("bbKGqU", password.cut(pass.clone()));
+    }
 
-#[test]
-fn test_cut_alphanum_password() {
-    let pass = vec!(1, 1, 88, 240, 120, 150, 13, 21, 34, 55);
-    let password = Password::new_for_test(FormatChoice::AlphaNum, 8);
-    assert_eq!("bbA26Anv", password.cut(pass.clone()));
+    #[test]
+    fn test_cut_alphanum_password() {
+        let pass = vec!(1, 1, 88, 240, 120, 150, 13, 21, 34, 55);
+        let password = Password::new_for_test(FormatChoice::AlphaNum, 8);
+        assert_eq!("bbA26Anv", password.cut(pass.clone()));
 
-    let password = Password::new_for_test(FormatChoice::AlphaNum, 6);
-    assert_eq!("bbA26A", password.cut(pass.clone()));
-}
+        let password = Password::new_for_test(FormatChoice::AlphaNum, 6);
+        assert_eq!("bbA26A", password.cut(pass.clone()));
+    }
 
-#[test]
-fn test_cut_alphanumsym_password() {
-    let pass = vec!(1, 1, 88, 240, 120, 150, 13, 21, 34, 55);
-    let password = Password::new_for_test(FormatChoice::AlphaNumAndSymbols, 8);
-    assert_eq!("\"\"yU;Y.6", password.cut(pass.clone()));
+    #[test]
+    fn test_cut_alphanumsym_password() {
+        let pass = vec!(1, 1, 88, 240, 120, 150, 13, 21, 34, 55);
+        let password = Password::new_for_test(FormatChoice::AlphaNumAndSymbols, 8);
+        assert_eq!("\"\"yU;Y.6", password.cut(pass.clone()));
 
-    let password = Password::new_for_test(FormatChoice::AlphaNumAndSymbols, 6);
-    assert_eq!("\"\"yU;Y", password.cut(pass.clone()));
-}
+        let password = Password::new_for_test(FormatChoice::AlphaNumAndSymbols, 6);
+        assert_eq!("\"\"yU;Y", password.cut(pass.clone()));
+    }
 
-#[test]
-fn test_passwords_title_exists() {
-    let mut passwords = Passwords::default();
-    assert_eq!(false, passwords.title_exists("meep"));
+    #[test]
+    fn test_passwords_title_exists() {
+        let mut passwords = Passwords::default();
+        assert_eq!(false, passwords.title_exists("meep"));
 
-    let password = Password::default();
-    passwords.insert("meep", password);
-    assert_eq!(true, passwords.title_exists("meep"));
+        let password = Password::default();
+        passwords.insert("meep", password);
+        assert_eq!(true, passwords.title_exists("meep"));
 
-    assert_eq!("{\n  \"version\": 1,\n  \"metadata\": {\n    \"meep\": {\n      \"salt\": \"\",\n      \"meat\": \"\",\n      \"text\": \"\",\n      \"format\": {\n        \"AlphaNumAndSymbols\": []\n      },\n      \"length\": 32\n    }\n  }\n}", passwords.to_string_pretty());
+        assert_eq!("{\n  \"version\": 1,\n  \"metadata\": {\n    \"meep\": {\n      \"salt\": \"\",\n      \"meat\": \"\",\n      \"text\": \"\",\n      \"format\": {\n        \"AlphaNumAndSymbols\": []\n      },\n      \"length\": 32\n    }\n  }\n}", passwords.to_string_pretty());
 
-    passwords.find_by_title_or_bail("meep");
+        passwords.find_by_title_or_bail("meep");
+    }
 }
