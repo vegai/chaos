@@ -67,7 +67,7 @@ fn main() {
     // Functionality that does not require loading the key
     // ls
     if matches.subcommand_name() == None || matches.is_present("ls") {
-        let mut titles: Vec<&String> = old_data.metadata.keys().collect();
+        let mut titles: Vec<&String> = old_data.passwords.keys().collect();
         titles.sort();
         for title in titles {
             println!("{}", title);
@@ -84,7 +84,7 @@ fn main() {
             exit(1);
         }
 
-        old_data.metadata.remove(title);
+        old_data.passwords.remove(title);
 
         let metadata_string = old_data.to_string_pretty();
         common::save_data(&metadata_string, &data_file_name);
@@ -102,9 +102,6 @@ fn main() {
         }
 
         let format_string = matches.value_of("format");
-//        let format = serde_json::from_str(&format_stringw
-        //).ok().unwrap_or_default();
-        //        .unwrap_or_default().parse::<model::FormatChowice>().unwrap();
         let format = model::FormatChoice::get_from_parameter(format_string.unwrap());
         let length = matches.value_of("length").unwrap_or(common::DEFAULT_LENGTH).parse::<u16>().unwrap();
 

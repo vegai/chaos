@@ -32,15 +32,13 @@ impl FormatChoice {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Passwords {
-    version: u8,
-    pub metadata: HashMap<String, Password>
+    pub passwords: HashMap<String, Password>
 }
 
 impl Default for Passwords {
     fn default() -> Passwords {
         Passwords {
-            version: 1,
-            metadata: HashMap::new(),
+            passwords: HashMap::new(),
         }
     }
 }
@@ -48,11 +46,11 @@ impl Default for Passwords {
 
 impl Passwords {
     pub fn title_exists(&self, title: &str) -> bool {
-        self.metadata.contains_key(title)
+        self.passwords.contains_key(title)
     }
 
     pub fn insert(&mut self, title: &str, password: Password) {
-        self.metadata.insert(title.to_string(), password);
+        self.passwords.insert(title.to_string(), password);
     }
 
     pub fn load_from_file(path: &str) -> Passwords {
@@ -67,7 +65,7 @@ impl Passwords {
     }
 
     pub fn find_by_title_or_bail<'a>(&'a self, title: &str) -> &'a Password {
-        match self.metadata.get(title) {
+        match self.passwords.get(title) {
             Some(password) => password,
             None => {
                 println!("'{}' does not exist.", title);
@@ -206,7 +204,7 @@ mod tests {
         passwords.insert("meep", password);
         assert_eq!(true, passwords.title_exists("meep"));
 
-        assert_eq!("{\n  \"version\": 1,\n  \"metadata\": {\n    \"meep\": {\n      \"salt\": \"\",\n      \"meat\": \"\",\n      \"text\": \"\",\n      \"format\": {\n        \"AlphaNumAndSymbols\": []\n      },\n      \"length\": 32\n    }\n  }\n}", passwords.to_string_pretty());
+        assert_eq!("{\n  \"passwords\": {\n    \"meep\": {\n      \"salt\": \"\",\n      \"meat\": \"\",\n      \"text\": \"\",\n      \"format\": {\n        \"AlphaNumAndSymbols\": []\n      }\n    }\n  }\n}", passwords.to_string_pretty());
 
         passwords.find_by_title_or_bail("meep");
     }
