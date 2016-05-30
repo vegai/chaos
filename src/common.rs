@@ -15,7 +15,6 @@ use self::serialize::base64;
 use self::serialize::base64::{FromBase64, ToBase64};
 use self::rand::{OsRng, Rng};
 
-pub const DEFAULT_LENGTH: &'static str = "32";
 const SALT_LENGTH: usize = 24;
 const KEY_LENGTH: usize = 32;
 

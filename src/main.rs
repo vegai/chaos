@@ -12,6 +12,9 @@ mod model;
 mod common;
 
 
+pub const DEFAULT_LENGTH: &'static str = "32";
+pub const DEFAULT_FORMAT: &'static str = "1";
+
 fn main() {
     let matches = App::new("chaos")
                       .author("Vesa Kaihlavirta <vegai@iki.fi>")
@@ -101,9 +104,8 @@ fn main() {
             exit(1);
         }
 
-        let format_string = matches.value_of("format");
-        let format = model::FormatChoice::get_from_parameter(format_string.unwrap());
-        let length = matches.value_of("length").unwrap_or(common::DEFAULT_LENGTH).parse::<u16>().unwrap();
+        let format = matches.value_of("format").unwrap_or(DEFAULT_FORMAT).parse::<u8>().unwrap();
+        let length = matches.value_of("length").unwrap_or(DEFAULT_LENGTH).parse::<u16>().unwrap();
 
         let salt = common::generate_salt();
         let meat = common::generate_meat(length as usize);
