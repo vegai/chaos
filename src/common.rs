@@ -50,7 +50,7 @@ pub fn load_or_create_key(filename: &str) -> Vec<u8> {
     }
 }
 
-pub fn create_data_dir(data_dir: &str) {
+pub fn ensure_data_dir(data_dir: &str) {
     fs::create_dir_all(data_dir.to_string())
         .expect(&format!("Creating data directory {} failed", data_dir));
     set_file_perms(&data_dir, 0o700);

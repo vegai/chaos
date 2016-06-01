@@ -62,10 +62,9 @@ fn main() {
     let data_dir = shellexpand::tilde("~/.chaos");
     let data_file_name = format!("{}/data.json", data_dir);
     let key_file_name = format!("{}/key", data_dir);
-    common::create_data_dir(&data_dir);
+    common::ensure_data_dir(&data_dir);
 
     let mut old_data = model::Passwords::load_from_file(&data_file_name);
-
 
     // Functionality that does not require loading the key
     // ls
