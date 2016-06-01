@@ -87,7 +87,8 @@ fn main() {
         }
 
         old_data.passwords.remove(title);
-        old_data.save_to_file(&data_file_name);
+        let commit_text = format!("rm {}", title);
+        old_data.save_to_file(&data_dir, &data_file_name, &commit_text);
         return;
     }
 
@@ -113,7 +114,8 @@ fn main() {
         };
 
         old_data.insert(title, pd);
-        old_data.save_to_file(&data_file_name);
+        let commit_text = format!("new {}", title);
+        old_data.save_to_file(&data_dir, &data_file_name, &commit_text);
 
         println!("{} added", title);
         return;

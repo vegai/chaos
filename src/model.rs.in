@@ -31,10 +31,11 @@ impl Passwords {
         }
     }
 
-    pub fn save_to_file(&self, path: &str) {
+    pub fn save_to_file(&self, data_dir: &str, path: &str, commit_text: &str) {
         let data_json_string = self.to_string_pretty();
         common::write_data(&data_json_string, &path);
         common::set_file_perms(&path, 0o600);
+        common::commit_data(&data_dir, &path, &commit_text);
     }
 
     pub fn to_string_pretty(&self) -> String {

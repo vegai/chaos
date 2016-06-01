@@ -1,7 +1,6 @@
 extern crate crypto;
 extern crate rustc_serialize as serialize;
 extern crate rand;
-extern crate git2;
 
 use std::iter::repeat;
 use std::fs;
@@ -9,13 +8,15 @@ use std::io;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::os::unix::fs::PermissionsExt;
+use std::process::Command;
+use std::env::set_current_dir;
+use std::path::Path;
 
 use self::crypto::salsa20::Salsa20;
 use self::crypto::symmetriccipher::SynchronousStreamCipher;
 use self::serialize::base64;
 use self::serialize::base64::{FromBase64, ToBase64};
 use self::rand::{OsRng, Rng};
-use self::git2::Repository;
 
 const SALT_LENGTH: usize = 24;
 const KEY_LENGTH: usize = 32;
@@ -57,7 +58,25 @@ pub fn ensure_data_dir(data_dir: &str) {
         .expect(&format!("Creating data directory {} failed", data_dir));
     set_file_perms(&data_dir, 0o700);
 
-    Repository::init(data_dir).expect("Failed to init data git repo");
+    if !Path::new(data_dir).join(".git").exists() {
+        set_current_dir(data_dir).expect("Failed to set dir to data dir");
+
+        Command::new("git").arg("init").status().expect("Failed to init data git repo");
+
+        let git_args = [
+            "config",
+            "user.email",
+            "chaos"
+        ];
+        Command::new("git").args(&git_args).status().expect("Failed to set user.email");
+
+        let git_args = [
+            "config",
+            "user.name",
+            "chaos"
+        ];
+        Command::new("git").args(&git_args).status().expect("Failed to set user.name");
+    }
 }
 
 pub fn read_data(path: &str) -> Result<String, io::Error> {
@@ -65,6 +84,29 @@ pub fn read_data(path: &str) -> Result<String, io::Error> {
     let mut s = String::new();
     try!(f.read_to_string(&mut s));
     Ok(s)
+}
+
+pub fn commit_data(data_dir: &str, data_file: &str, commit_text: &str) {
+    set_current_dir(data_dir).expect("Failed to set dir to data dir");
+
+    let git_args = [
+        "add",
+        data_file,
+    ].to_vec();
+
+    Command::new("git").args(&git_args).status().unwrap_or_else(|e| {
+        panic!("Failed to add data file: {}", e);
+    });
+
+    let git_args = [
+        "commit",
+        "-m",
+        commit_text
+    ].to_vec();
+    Command::new("git").args(&git_args).status().unwrap_or_else(|e| {
+        panic!("Failed to git commit: {}", e);
+    });
+
 }
 
 pub fn write_data(data: &str, filename: &str) {
@@ -79,8 +121,6 @@ pub fn set_file_perms(filename: &str, mode: u32) {
     perms.set_mode(mode);
     fs::set_permissions(filename, perms).expect("Setting permission failed");
 }
-
-
 
 #[cfg(test)]
 mod tests {
