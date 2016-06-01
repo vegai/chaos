@@ -4,11 +4,6 @@
 
 Password metadata storager and xsalsa20 hasher. 
 
-# warnings
-
-The data structures aren't fixed yet, and I'll be probably changing them in ways
-that will totally break your existing data. 
-
 # installation / requirements
 
 Rust stable (known to work on 1.8) needed to compile. 
@@ -86,7 +81,3 @@ Password metadata contains structures of title, format, length, and generated sa
 
 Actual passwords are not stored anywhere, but are computed by xsalsa20 and cut up based on wanted format.
 
-
-# todo
-
-- git integration (via git2 I think)
