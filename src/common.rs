@@ -1,6 +1,7 @@
 extern crate crypto;
 extern crate rustc_serialize as serialize;
 extern crate rand;
+extern crate git2;
 
 use std::iter::repeat;
 use std::fs;
@@ -14,6 +15,7 @@ use self::crypto::symmetriccipher::SynchronousStreamCipher;
 use self::serialize::base64;
 use self::serialize::base64::{FromBase64, ToBase64};
 use self::rand::{OsRng, Rng};
+use self::git2::Repository;
 
 const SALT_LENGTH: usize = 24;
 const KEY_LENGTH: usize = 32;
@@ -54,6 +56,11 @@ pub fn ensure_data_dir(data_dir: &str) {
     fs::create_dir_all(data_dir.to_string())
         .expect(&format!("Creating data directory {} failed", data_dir));
     set_file_perms(&data_dir, 0o700);
+
+    let repo = match Repository::init(data_dir) {
+        Ok(repo) => repo,
+        Err(e) => panic!("Failed to init repo: {}", e)
+    };
 }
 
 pub fn load_file(path: &str) -> Result<String, io::Error> {
