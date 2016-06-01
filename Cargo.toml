@@ -1,6 +1,6 @@
 [package]
 name = "chaos"
-version = "0.9.0"
+version = "0.9.1"
 description = "Password metadata storage and xsalsa20 hasher"
 repository = "https://github.com/vegai/chaos"
 license = "Unlicense"
@@ -21,4 +21,3 @@ serde_json = "0.7"
 rand = "0.3"
 shellexpand = "0.1"
 clap = "2.3"
-git2 = "0.4"
