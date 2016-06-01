@@ -38,14 +38,14 @@ pub fn generate_meat(i: usize) -> Vec<u8> {
 }
 
 pub fn load_or_create_key(filename: &str) -> Vec<u8> {
-    match load_file(filename) {
+    match read_data(filename) {
         Ok(s) => s.from_base64().expect("Key base64 decoding failed"),
         Err(_) => {
             println!("Creating a new key in {}", filename);
             let mut rng = OsRng::new().expect("OsRng init failed");
             let new_key: Vec<u8> = rng.gen_iter::<u8>().take(KEY_LENGTH).collect();
             let key_base64 = new_key.to_base64(base64::STANDARD);
-            save_data(&key_base64, filename);
+            write_data(&key_base64, filename);
             set_file_perms(filename, 0o400);
             new_key
         }
@@ -57,20 +57,17 @@ pub fn ensure_data_dir(data_dir: &str) {
         .expect(&format!("Creating data directory {} failed", data_dir));
     set_file_perms(&data_dir, 0o700);
 
-    let repo = match Repository::init(data_dir) {
-        Ok(repo) => repo,
-        Err(e) => panic!("Failed to init repo: {}", e)
-    };
+    Repository::init(data_dir).expect("Failed to init data git repo");
 }
 
-pub fn load_file(path: &str) -> Result<String, io::Error> {
+pub fn read_data(path: &str) -> Result<String, io::Error> {
     let mut f = try!(File::open(path));
     let mut s = String::new();
     try!(f.read_to_string(&mut s));
     Ok(s)
 }
 
-pub fn save_data(data: &str, filename: &str) {
+pub fn write_data(data: &str, filename: &str) {
     let mut f = File::create(filename).unwrap();
     f.write_all(data.as_bytes()).expect("Data file write failed");
     f.write_all(b"\n").expect("Newline write failed!?");
