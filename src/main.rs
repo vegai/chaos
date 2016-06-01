@@ -88,10 +88,7 @@ fn main() {
         }
 
         old_data.passwords.remove(title);
-
-        let metadata_string = old_data.to_string_pretty();
-        common::save_data(&metadata_string, &data_file_name);
-        common::set_file_perms(&data_file_name, 0o600);
+        old_data.save_to_file(&data_file_name);
         return;
     }
 
@@ -115,12 +112,11 @@ fn main() {
             text: String::new(),
             format: format,
         };
+
         old_data.insert(title, pd);
-        let metadata_string = old_data.to_string_pretty();
+        old_data.save_to_file(&data_file_name);
 
         println!("{} added", title);
-        common::save_data(&metadata_string, &data_file_name);
-        common::set_file_perms(&data_file_name, 0o600);
         return;
     }
 

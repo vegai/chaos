@@ -31,6 +31,12 @@ impl Passwords {
         }
     }
 
+    pub fn save_to_file(&self, path: &str) {
+        let data_json_string = self.to_string_pretty();
+        common::save_data(&data_json_string, &path);
+        common::set_file_perms(&path, 0o600);
+    }
+
     pub fn to_string_pretty(&self) -> String {
         serde_json::to_string_pretty(self).unwrap()
     }
