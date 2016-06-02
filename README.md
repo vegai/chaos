@@ -95,3 +95,6 @@ Password metadata contains structures of title, format, length, and generated me
 
 Actual passwords are not stored anywhere, but are computed by xsalsa20 and cut up based on wanted format.
 
+# todo
+
+- (fairly) secure clipboard integration
