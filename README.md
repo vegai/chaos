@@ -98,3 +98,4 @@ Actual passwords are not stored anywhere, but are computed by xsalsa20 and cut u
 # todo
 
 - (fairly) secure clipboard integration
+- support editing the text field
