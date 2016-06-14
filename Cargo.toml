@@ -1,6 +1,6 @@
 [package]
 name = "chaos"
-version = "0.9.1"
+version = "0.9.2"
 description = "Password metadata storage and xsalsa20 hasher"
 repository = "https://github.com/vegai/chaos"
 license = "Unlicense"
@@ -11,7 +11,7 @@ build = "build.rs"
 
 [build-dependencies]
 serde_codegen="0.7"
-syntex="0.33"
+syntex="0"
 
 [dependencies]
 rust-crypto = "0.2"
