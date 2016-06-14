@@ -99,3 +99,4 @@ Actual passwords are not stored anywhere, but are computed by xsalsa20 and cut u
 
 - (fairly) secure clipboard integration
 - support editing the text field
+- sync command for doing git pull/push
