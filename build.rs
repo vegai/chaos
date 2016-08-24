@@ -11,8 +11,5 @@ pub fn main() {
     let src = Path::new("src/model.rs.in");
     let dst = Path::new(&out_dir).join("model.rs");
 
-    let mut registry = syntex::Registry::new();
-
-    serde_codegen::register(&mut registry);
-    registry.expand("", &src, &dst).unwrap();
+    serde_codegen::expand(&src, &dst).unwrap();
 }
