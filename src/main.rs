@@ -1,16 +1,15 @@
-extern crate rustc_serialize as serialize;
 extern crate shellexpand;
-#[macro_use]
 extern crate clap;
+#[macro_use] extern crate serde_derive;
+extern crate serde;
+extern crate serde_json;
+extern crate base64;
 
 use clap::{Arg, App, SubCommand};
 use std::process::exit;
-use serialize::base64;
-use serialize::base64::{FromBase64, ToBase64};
 
 mod model;
 mod common;
-
 
 pub const DEFAULT_LENGTH: &'static str = "32";
 pub const DEFAULT_FORMAT: &'static str = "1";
@@ -107,8 +106,8 @@ fn main() {
         let salt = common::generate_salt();
         let meat = common::generate_meat(length as usize);
         let pd = model::Password {
-            salt: salt.to_base64(base64::STANDARD),
-            meat: meat.to_base64(base64::STANDARD),
+            salt: base64::encode(&salt), // .to_base64(base64::STANDARD),
+            meat: base64::encode(&meat), // meat.to_base64(base64::STANDARD),
             text: String::new(),
             format: format,
         };
@@ -127,12 +126,8 @@ fn main() {
     if let Some(ref matches) = matches.subcommand_matches("get") {
         let title = matches.value_of("title").unwrap();
         let password = old_data.find_by_title_or_bail(&title);
-        let decoded_meat: Vec<u8> = password.meat
-            .from_base64()
-            .expect("Meat base64 decoding failed");
-        let decoded_salt: Vec<u8> = password.salt
-                                            .from_base64()
-                                            .expect("Salt base64 decoding failed");
+        let decoded_meat: Vec<u8> = base64::decode(&password.meat).expect("Meat base64 decoding failed");
+        let decoded_salt: Vec<u8> = base64::decode(&password.salt).expect("Salt base64 decoding failed");
         let pass = common::generate_password(&key, decoded_meat, decoded_salt);
 
         println!("{}", password.cut(pass));

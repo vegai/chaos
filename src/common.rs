@@ -1,5 +1,4 @@
 extern crate crypto;
-extern crate rustc_serialize as serialize;
 extern crate rand;
 
 use std::iter::repeat;
@@ -14,9 +13,9 @@ use std::path::Path;
 
 use self::crypto::salsa20::Salsa20;
 use self::crypto::symmetriccipher::SynchronousStreamCipher;
-use self::serialize::base64;
-use self::serialize::base64::{FromBase64, ToBase64};
 use self::rand::{OsRng, Rng};
+
+use base64;
 
 const SALT_LENGTH: usize = 24;
 const KEY_LENGTH: usize = 32;
@@ -40,12 +39,12 @@ pub fn generate_meat(i: usize) -> Vec<u8> {
 
 pub fn load_or_create_key(filename: &str) -> Vec<u8> {
     match read_data(filename) {
-        Ok(s) => s.from_base64().expect("Key base64 decoding failed"),
+        Ok(s) => base64::decode(&s).expect("Key base64 decoding failed"),
         Err(_) => {
             println!("Creating a new key in {}", filename);
             let mut rng = OsRng::new().expect("OsRng init failed");
             let new_key: Vec<u8> = rng.gen_iter::<u8>().take(KEY_LENGTH).collect();
-            let key_base64 = new_key.to_base64(base64::STANDARD);
+            let key_base64 = base64::encode(&new_key); // .to_base64(base64::STANDARD);
             write_data(&key_base64, filename);
             set_file_perms(filename, 0o400);
             new_key

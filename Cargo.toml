@@ -1,23 +1,19 @@
 [package]
 name = "chaos"
-version = "0.9.3"
+version = "0.9.4"
 description = "Password metadata storage and xsalsa20 hasher"
 repository = "https://github.com/vegai/chaos"
 license = "Unlicense"
 readme = "README.md"
 keywords = ["hasher", "password", "security", "simple", "cli"]
 authors = ["vegai@iki.fi"]
-build = "build.rs"
-
-[build-dependencies]
-serde_codegen="0.8"
-syntex="0"
 
 [dependencies]
 rust-crypto = "0.2"
-rustc-serialize = "0.3"
-serde = "0.8"
-serde_json = "0.8"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
 rand = "0.3"
-shellexpand = "0.1"
-clap = "2.3"
+shellexpand = "1.0"
+clap = "2.23"
+base64 = "0.5"
