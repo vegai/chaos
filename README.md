@@ -1,4 +1,3 @@
-
 # chaos
 [![Build Status](https://travis-ci.org/vegai/chaos.svg?branch=master)](https://travis-ci.org/vegai/chaos)
 
@@ -99,4 +98,7 @@ Actual passwords are not stored anywhere, but are computed by xsalsa20 and cut u
 
 - (fairly) secure clipboard integration
 - support editing the text field
-- sync command for doing git pull/push
+- fix 0.9.4 (get is broken after base64 changes)
+- integrate with pijul instead of git
+- BREAK FILE FORMAT and go towards something more stable (sorted json makes horrible vcs patches)
+- when the above things are done, release 1.0 and stop breaking it :)
