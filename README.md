@@ -1,6 +1,12 @@
 # chaos
 [![Build Status](https://travis-ci.org/vegai/chaos.svg?branch=master)](https://travis-ci.org/vegai/chaos)
 
+WARNING: will be probably breaking the file format a bit before 1.0: will change the JSON file format to 
+something neater. Perhaps steal pass's idea of file-per-entry, that would work much better against 
+version controlling. 
+
+I should be able to write a converter script for pre-1.0 => 1.0 format. I'll need one anyway :)
+
 Password metadata storager and xsalsa20 hasher. It generates and stores meats and salts and a master key, and 
 is able to recall passwords by xsalsa20 hashing. Chaos also automatically makes git commits out of every
 change to the JSON file.
