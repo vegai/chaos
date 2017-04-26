@@ -39,7 +39,10 @@ pub fn generate_meat(i: usize) -> Vec<u8> {
 
 pub fn load_or_create_key(filename: &str) -> Vec<u8> {
     match read_data(filename) {
-        Ok(s) => base64::decode(&s).expect("Key base64 decoding failed"),
+        Ok(s) => {
+            let s = s.lines().next().expect("Reading base64 key failed");
+            base64::decode(s).expect("Key base64 decoding failed")
+        }
         Err(_) => {
             println!("Creating a new key in {}", filename);
             let mut rng = OsRng::new().expect("OsRng init failed");
@@ -124,6 +127,9 @@ pub fn set_file_perms(filename: &str, mode: u32) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+
 
     #[test]
     fn test_generate_salt() {
