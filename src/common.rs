@@ -129,9 +129,6 @@ mod tests {
     use super::*;
 
     #[test]
-
-
-    #[test]
     fn test_generate_salt() {
         let salt1 = generate_salt();
         let salt2 = generate_salt();
