@@ -15,7 +15,8 @@ use std::process::Command;
 
 use self::crypto::salsa20::Salsa20;
 use self::crypto::symmetriccipher::SynchronousStreamCipher;
-use self::rand::{OsRng, Rng};
+use self::rand::distributions::Standard;
+use self::rand::{thread_rng, Rng};
 
 use base64;
 
@@ -34,14 +35,15 @@ pub fn generate_password(key: &[u8], meat: &[u8], salt: &[u8]) -> Vec<u8> {
 
 /// generate a new random salt
 pub fn generate_salt() -> Vec<u8> {
-    let mut rng = OsRng::new().expect("OsRng init failed");
-    rng.gen_iter::<u8>().take(SALT_LENGTH).collect()
+    thread_rng()
+        .sample_iter(&Standard)
+        .take(SALT_LENGTH)
+        .collect()
 }
 
 /// generate a new random meat, based on size
 pub fn generate_meat(i: usize) -> Vec<u8> {
-    let mut rng = OsRng::new().expect("OsRng init failed");
-    rng.gen_iter::<u8>().take(i).collect()
+    thread_rng().sample_iter(&Standard).take(i).collect()
 }
 
 /// load the private key, or generate a new one
@@ -51,9 +53,11 @@ pub fn load_or_create_key(filename: &str) -> Vec<u8> {
         base64::decode(s).expect("Key base64 decoding failed")
     } else {
         println!("Creating a new key in {}", filename);
-        let mut rng = OsRng::new().expect("OsRng init failed");
-        let new_key: Vec<u8> = rng.gen_iter::<u8>().take(KEY_LENGTH).collect();
-        let key_base64 = base64::encode(&new_key); // .to_base64(base64::STANDARD);
+        let new_key: Vec<u8> = thread_rng()
+            .sample_iter(&Standard)
+            .take(KEY_LENGTH)
+            .collect();
+        let key_base64 = base64::encode(&new_key);
         write_data(&key_base64, filename);
         set_file_perms(filename, 0o400);
         new_key
