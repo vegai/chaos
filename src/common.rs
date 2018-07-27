@@ -67,7 +67,7 @@ pub fn load_or_create_key(filename: &str) -> Vec<u8> {
 /// ensure that the data dir exists
 pub fn ensure_data_dir(data_dir: &str) {
     fs::create_dir_all(data_dir.to_string())
-        .expect(&format!("Creating data directory {} failed", data_dir));
+        .unwrap_or_else(|_| panic!("Creating data directory {} failed", data_dir));
     set_file_perms(data_dir, 0o700);
 
     if !Path::new(data_dir).join(".git").exists() {

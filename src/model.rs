@@ -110,7 +110,7 @@ impl Password {
     }
 
     /// cuts the password based on the meat
-    pub fn cut(&self, pass: Vec<u8>) -> String {
+    pub fn cut(&self, pass: &[u8]) -> String {
         let packed_pass = self.pack_into_password(&*pass);
         packed_pass.chars().take(self.meat.len()).collect()
     }

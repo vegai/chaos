@@ -19,9 +19,9 @@ mod common;
 mod model;
 
 /// default password length
-pub const DEFAULT_LENGTH: &'static str = "32";
+pub const DEFAULT_LENGTH: &str = "32";
 /// default password format
-pub const DEFAULT_FORMAT: &'static str = "1";
+pub const DEFAULT_FORMAT: &str = "1";
 
 /// main main main
 fn main() {
@@ -139,7 +139,7 @@ fn main() {
             salt: base64::encode(&salt), // .to_base64(base64::STANDARD),
             meat: base64::encode(&meat), // meat.to_base64(base64::STANDARD),
             text: String::new(),
-            format: format,
+            format,
         };
 
         old_data.insert(title, pd);
@@ -162,7 +162,7 @@ fn main() {
             base64::decode(&password.salt).expect("Salt base64 decoding failed");
         let pass = common::generate_password(&key, &decoded_meat, &decoded_salt);
 
-        println!("{}", password.cut(pass));
+        println!("{}", password.cut(&pass));
         return;
     }
 }
