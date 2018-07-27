@@ -1,22 +1,22 @@
 //! Chaos is a password hasher + metadata storager
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
-#![cfg_attr(feature="clippy", deny(clippy_pedantic))]
-#![cfg_attr(feature="clippy", allow(print_stdout))]
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
+#![cfg_attr(feature = "clippy", deny(clippy_pedantic))]
+#![cfg_attr(feature = "clippy", allow(print_stdout))]
 
-extern crate shellexpand;
 extern crate clap;
+extern crate shellexpand;
 #[macro_use]
 extern crate serde_derive;
+extern crate base64;
 extern crate serde;
 extern crate serde_json;
-extern crate base64;
 
-use clap::{Arg, App, SubCommand};
+use clap::{App, Arg, SubCommand};
 use std::process::exit;
 
-mod model;
 mod common;
+mod model;
 
 /// default password length
 pub const DEFAULT_LENGTH: &'static str = "32";
@@ -27,9 +27,9 @@ pub const DEFAULT_FORMAT: &'static str = "1";
 fn main() {
     let matches = App::new("chaos")
         .author("Vesa Kaihlavirta <vegai@iki.fi>")
-        .subcommand(SubCommand::with_name("ls").about(
-            "lists entries (default action if none specified)",
-        ))
+        .subcommand(
+            SubCommand::with_name("ls").about("lists entries (default action if none specified)"),
+        )
         .subcommand(
             SubCommand::with_name("rm")
                 .about("remove entry")
@@ -42,9 +42,11 @@ fn main() {
                 )
                 .arg(Arg::with_name("title").index(1).required(true)),
         )
-        .subcommand(SubCommand::with_name("get").about("get entry").arg(
-            Arg::with_name("title").index(1).required(true),
-        ))
+        .subcommand(
+            SubCommand::with_name("get")
+                .about("get entry")
+                .arg(Arg::with_name("title").index(1).required(true)),
+        )
         .subcommand(
             SubCommand::with_name("new")
                 .arg(
@@ -68,7 +70,7 @@ fn main() {
                         .long("format")
                         .help(
                             "1=alphanumsymbol, 2=alphanum, 3=alpha, \
-                                                      4=num, 5=lol",
+                             4=num, 5=lol",
                         )
                         .value_name("format")
                         .takes_value(true),
@@ -163,5 +165,4 @@ fn main() {
         println!("{}", password.cut(pass));
         return;
     }
-
 }

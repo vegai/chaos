@@ -3,8 +3,8 @@
 use std::collections::HashMap;
 use std::process::exit;
 
-use serde_json;
 use super::common;
+use serde_json;
 
 /// The root structure for all passwords
 #[derive(Serialize, Deserialize, Debug)]
@@ -15,7 +15,9 @@ pub struct Passwords {
 
 impl Default for Passwords {
     fn default() -> Passwords {
-        Passwords { passwords: HashMap::new() }
+        Passwords {
+            passwords: HashMap::new(),
+        }
     }
 }
 
@@ -91,19 +93,15 @@ impl Password {
     /// packs a hash bytestring into a password based on the format
     fn pack_into_password(&self, hash: &[u8]) -> String {
         match self.format {
-            1 => {
-                pack(
-                    "!\"#$%&'()*+,-./0123456789:;\
-                      <=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
-                    hash,
-                )
-            }
-            2 => {
-                pack(
-                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-                    hash,
-                )
-            }
+            1 => pack(
+                "!\"#$%&'()*+,-./0123456789:;\
+                 <=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+                hash,
+            ),
+            2 => pack(
+                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+                hash,
+            ),
             3 => pack("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", hash),
             4 => pack("0123456789", hash),
             5 => pack("01", hash),
@@ -129,7 +127,6 @@ fn pack(allowed_chars: &str, hash: &[u8]) -> String {
     output
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -150,7 +147,6 @@ mod tests {
         let pass = vec![1, 1, 88, 240, 120, 150, 13, 21, 34, 55];
         let password = Password::new_for_test(5, "12345678");
         assert_eq!("11000011", password.cut(pass.clone()));
-
 
         let password = Password::new_for_test(5, "123456");
         assert_eq!("110000", password.cut(pass.clone()));

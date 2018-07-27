@@ -3,15 +3,15 @@
 extern crate crypto;
 extern crate rand;
 
-use std::iter::repeat;
-use std::fs;
-use std::io;
-use std::fs::File;
-use std::io::{Read, Write};
-use std::os::unix::fs::PermissionsExt;
-use std::process::Command;
 use std::env::set_current_dir;
+use std::fs;
+use std::fs::File;
+use std::io;
+use std::io::{Read, Write};
+use std::iter::repeat;
+use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
+use std::process::Command;
 
 use self::crypto::salsa20::Salsa20;
 use self::crypto::symmetriccipher::SynchronousStreamCipher;
@@ -62,31 +62,32 @@ pub fn load_or_create_key(filename: &str) -> Vec<u8> {
 
 /// ensure that the data dir exists
 pub fn ensure_data_dir(data_dir: &str) {
-    fs::create_dir_all(data_dir.to_string()).expect(&format!(
-        "Creating data directory {} failed",
-        data_dir
-    ));
+    fs::create_dir_all(data_dir.to_string())
+        .expect(&format!("Creating data directory {} failed", data_dir));
     set_file_perms(data_dir, 0o700);
 
     if !Path::new(data_dir).join(".git").exists() {
         set_current_dir(data_dir).expect("Failed to set dir to data dir");
 
-        Command::new("git").arg("init").status().expect(
-            "Failed to init data git repo",
-        );
+        Command::new("git")
+            .arg("init")
+            .status()
+            .expect("Failed to init data git repo");
 
         {
             let git_args = ["config", "user.email", "chaos"];
-            Command::new("git").args(&git_args).status().expect(
-                "Failed to set user.email",
-            );
+            Command::new("git")
+                .args(&git_args)
+                .status()
+                .expect("Failed to set user.email");
         }
-        
+
         {
             let git_args = ["config", "user.name", "chaos"];
-            Command::new("git").args(&git_args).status().expect(
-                "Failed to set user.name",
-            );
+            Command::new("git")
+                .args(&git_args)
+                .status()
+                .expect("Failed to set user.name");
         }
     }
 }
@@ -119,15 +120,13 @@ pub fn commit_data(data_dir: &str, data_file: &str, commit_text: &str) {
         .unwrap_or_else(|e| {
             panic!("Failed to git commit: {}", e);
         });
-
 }
 
 /// write data to file
 pub fn write_data(data: &str, filename: &str) {
     let mut f = File::create(filename).expect("could not create data file");
-    f.write_all(data.as_bytes()).expect(
-        "Data file write failed",
-    );
+    f.write_all(data.as_bytes())
+        .expect("Data file write failed");
     f.write_all(b"\n").expect("Newline write failed!?");
     f.sync_all().expect("Sync failed");
 }
@@ -165,68 +164,15 @@ mod tests {
     fn test_generate_password() {
         let pass1 = generate_password(
             &[
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                11,
-                12,
-                13,
-                14,
-                15,
-                16,
-                17,
-                18,
-                19,
-                20,
-                21,
-                22,
-                23,
-                24,
-                25,
-                26,
-                27,
-                28,
-                29,
-                30,
-                31,
-                32,
+                1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+                24, 25, 26, 27, 28, 29, 30, 31, 32,
             ],
             &vec![1, 2],
             &vec![
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                11,
-                12,
-                13,
-                14,
-                15,
-                16,
-                17,
-                18,
-                19,
-                20,
-                21,
-                22,
-                23,
+                1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
                 24,
             ],
         );
         assert_eq!(vec![230, 6], pass1);
-
     }
 }
