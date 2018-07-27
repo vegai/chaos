@@ -9,7 +9,6 @@ keywords = ["hasher", "password", "security", "simple", "cli"]
 authors = ["vegai@iki.fi"]
 
 [dependencies]
-clippy = {version = "*", optional = true}
 rust-crypto = "0.2"
 serde = "1.0"
 serde_derive = "1.0"
@@ -18,6 +17,3 @@ rand = "0.5"
 shellexpand = "1.0"
 clap = "2"
 base64 = "0.9"
-
-[features]
-default = []
