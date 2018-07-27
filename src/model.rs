@@ -146,50 +146,50 @@ mod tests {
     fn test_cut_binary_password() {
         let pass = vec![1, 1, 88, 240, 120, 150, 13, 21, 34, 55];
         let password = Password::new_for_test(5, "12345678");
-        assert_eq!("11000011", password.cut(pass.clone()));
+        assert_eq!("11000011", password.cut(&pass));
 
         let password = Password::new_for_test(5, "123456");
-        assert_eq!("110000", password.cut(pass.clone()));
+        assert_eq!("110000", password.cut(&pass));
     }
 
     #[test]
     fn test_cut_numeral_password() {
         let pass = vec![1, 1, 88, 240, 120, 150, 13, 21, 34, 55];
         let password = Password::new_for_test(4, "12345678");
-        assert_eq!("11800031", password.cut(pass.clone()));
+        assert_eq!("11800031", password.cut(&pass));
 
         let password = Password::new_for_test(4, "123456");
-        assert_eq!("118000", password.cut(pass.clone()));
+        assert_eq!("118000", password.cut(&pass));
     }
 
     #[test]
     fn test_cut_alphaonly_password() {
         let pass = vec![1, 1, 88, 240, 120, 150, 13, 21, 34, 55];
         let password = Password::new_for_test(3, "12345678");
-        assert_eq!("bbKGqUnv", password.cut(pass.clone()));
+        assert_eq!("bbKGqUnv", password.cut(&pass));
 
         let password = Password::new_for_test(3, "123456");
-        assert_eq!("bbKGqU", password.cut(pass.clone()));
+        assert_eq!("bbKGqU", password.cut(&pass));
     }
 
     #[test]
     fn test_cut_alphanum_password() {
         let pass = vec![1, 1, 88, 240, 120, 150, 13, 21, 34, 55];
         let password = Password::new_for_test(2, "12345678");
-        assert_eq!("bbA26Anv", password.cut(pass.clone()));
+        assert_eq!("bbA26Anv", password.cut(&pass));
 
         let password = Password::new_for_test(2, "123456");
-        assert_eq!("bbA26A", password.cut(pass.clone()));
+        assert_eq!("bbA26A", password.cut(&pass));
     }
 
     #[test]
     fn test_cut_alphanumsym_password() {
         let pass = vec![1, 1, 88, 240, 120, 150, 13, 21, 34, 55];
         let password = Password::new_for_test(1, "12345678");
-        assert_eq!("\"\"yU;Y.6", password.cut(pass.clone()));
+        assert_eq!("\"\"yU;Y.6", password.cut(&pass));
 
         let password = Password::new_for_test(1, "123456");
-        assert_eq!("\"\"yU;Y", password.cut(pass.clone()));
+        assert_eq!("\"\"yU;Y", password.cut(&pass));
     }
 
     #[test]
